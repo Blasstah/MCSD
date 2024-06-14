@@ -164,7 +164,12 @@
                 }
 
                 player_count.text(`Players Online: ${status.query.players.length}/${status.query.maxPlayers}`)
-            }else player_count.text("Could not resolve server query");
+            }else {
+                if(status.running) player_count.text("Could not resolve server query");
+                else {
+                    player_count.text("Server is down.");
+                }
+            }
         })
 
         function addPlayer(username) {

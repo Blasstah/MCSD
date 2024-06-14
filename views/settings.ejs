@@ -10,12 +10,31 @@
     <body path="/settings" class="d-flex flex-column vh-100">
         <%- include("partials/navigation.ejs"); %>
         <main class="vw-100 vh-100 gap-3 p-2">
-            <h3>Server Settings Editor</h3>
+            <h3>Settings</h3>
             <hr class="m-1 mb-3">
             <div class="d-flex gap-3 justify-content-center">
                 <div class="d-flex flex-column align-items-end" style="height: 80vh; width: 35%;">
-                    <textarea id="properties" spellcheck="false" class="mb-2" style="font-family: monospace; color: white; background-color: #111; width: 100%; height: 100%; padding: 5px" contentEditable="true"><%- raw %></textarea>
+                    <textarea id="properties" spellcheck="false" class="mb-2" style="resize: none; font-family: monospace; color: white; background-color: #111; width: 100%; height: 100%; padding: 5px" contentEditable="true"><%- raw %></textarea>
                     <button id="replace_properties_file" style ="width: 100px" class="btn btn-success">Save File</button>
+                </div>
+                <div class="d-flex flex-column" style="height: 80vh; width: 35%;">
+                    <h3>AdminPanel</h3>
+                    <label for="adminPassword">Change AdminPanel Password</label>
+                    <div class="d-flex w-100 gap-1">
+                        <input type="password" class="form-control" id="adminpass" placeholder="New password...">
+                        <button id="change_password_visiblity" class="btn btn-secondary"><i class="bi bi-eye"></i></button>
+                        <button id="set_admin_pass" class="btn btn-warning">Change</button>
+                    </div>
+                    <hr>
+                    <h3>Memory</h3>
+                    <div>
+                        <label for="xmsRange" class="form-label">(Xms) Minimum amount of RAM to use:</label>
+                        <input type="range" unit="MB" class="form-range" min="256" max="1024" value="512" id="xmsRange">
+
+                        <label for="xmxRange" class="form-label">(Xmx) Maximum amount of RAM to use:</label>
+                        <input type="range" unit="MB" class="form-range" min="1024" max="16384" value="2048" id="xmxRange">
+                    </div>
+                    <hr>
                 </div>
             </div>
         </main>
@@ -24,11 +43,41 @@
     </body>
 
     <script>
+        $(".form-range").each((i, el) => {
+            let forObj = $(`[for="${el.id}"]`);
+            if(forObj.length <= 0) return;
+
+            forObj[0].defText = forObj.text();
+
+            $(el).on("change mousemove", () => {
+                forObj.text(forObj[0].defText + " " + $(el).val() + " " + $(el).attr("unit"))
+            })
+
+            forObj.text(forObj[0].defText + " " + $(el).val() + " " + $(el).attr("unit"))
+        })
+
         $("#replace_properties_file").click(() => {
             let val = $("#properties").val();
             socket.emit("properties_replace", val)
 
             $(this)[0].disabled = true;
+        });
+
+        $("#change_password_visiblity").click(function() {
+            let pass = $("#adminpass");
+
+            if(pass.attr("type") == "password") {
+                pass.attr("type", "text")
+                $(this).toggleClass("btn-success");
+            }else {
+                pass.attr("type", "password")
+                $(this).toggleClass("btn-success");
+            }
+        });
+
+        $("#set_admin_pass").click(function() {
+            let pass = $("#adminpass");
+            socket.emit("change_admin_pass", pass.val());
         });
     </script>
 </html>

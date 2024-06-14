@@ -50,6 +50,10 @@ app.set('view engine', 'ejs');
 
 let global_settings = { password: "admin", Xms: 512, Xmx: 2048 };
 
+function saveSettings() {
+    fs.writeFileSync("settings.json", JSON.stringify(global_settings, null, 4))
+}
+
 let macros = []
 
 if(fs.existsSync(path.join(__dirname, "settings.json"))) global_settings = JSON.parse(fs.readFileSync(path.join(__dirname, "settings.json")))
@@ -88,6 +92,21 @@ app.get('/settings', function(req, res) {
             data.raw = props.raw;
             data.data = props.data;
             res.render("settings", data);
+        }
+        else res.render("setup")
+
+        return;
+    }
+
+    res.render('login');
+});
+
+app.get('/macros', function(req, res) {
+    if(req.session.logged) {
+        if(fs.existsSync(path.join(__dirname, "mc_server/server.jar"))) {
+            var data = generateDashboardData();
+            data.macros = macros;
+            res.render("macros", data);
         }
         else res.render("setup")
 
@@ -141,7 +160,7 @@ function initialSetupRegister(socket) {
 
                 global_settings.Xms = args.data.Xms
                 global_settings.Xmx = args.data.Xmx
-                fs.writeFileSync("settings.json", JSON.stringify(global_settings, null, 4))
+                saveSettings();
 
                 if(fs.existsSync("mc_server/world"))
                     fs.rmSync("mc_server/world", {recursive: true, force: true})
@@ -196,8 +215,22 @@ function registerSecureSocket(socket) {
         socket.emit("force_reload")
     })
 
+    socket.on("change_admin_pass", (pass) => {
+        global_settings.password = pass;
+        saveSettings();
+
+        socket.emit("force_reload")
+    })
+
     socket.on("toggle_server", () => {
         toggleServer();
+    })
+
+    socket.on("logout", () => {
+        socket.request.session.destroy();
+        loggedSockets = loggedSockets.slice(loggedSockets.indexOf(socket), 1);
+
+        socket.emit("force_reload")
     })
 
     if(fs.existsSync(path.join(__dirname, "mc_server/logs/latest.log"))) {

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>MCSM - Login to the panel</title>
+
+        <%- include("partials/libs.ejs") %>
+    </head>
+    <body>
+        <main class="vw-100 vh-100 d-flex justify-content-center align-items-center">
+            <div class="card d-flex flex-column align-items-center h-25 mx-5 p-3">
+                <h1>MCSM</h1>
+                <h5>Easy to use server management software</h5>
+
+                <div class="d-flex flex-column mt-5 w-50">
+                    <label for="exampleInputPassword1">Panel Password</label>
+
+                    <form class="d-flex" method="post" action="/login">
+                        <input name="pass" type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+                        <button type="submit" class="btn btn-success d-flex gap-1"><i class="bi bi-door-open-fill"></i>Login</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </body>
+</html>

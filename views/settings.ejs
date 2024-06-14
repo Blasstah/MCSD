@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>MCSM - Minecraft Server Management Software</title>
+
+        <%- include("partials/libs.ejs") %>
+    </head>
+    <body path="/settings" class="d-flex flex-column vh-100">
+        <%- include("partials/navigation.ejs"); %>
+        <main class="vw-100 vh-100 gap-3 p-2">
+            <h3>Server Settings Editor</h3>
+            <hr class="m-1 mb-3">
+            <div class="d-flex gap-3 justify-content-center">
+                <div class="d-flex flex-column align-items-end" style="height: 80vh; width: 35%;">
+                    <textarea id="properties" spellcheck="false" class="mb-2" style="font-family: monospace; color: white; background-color: #111; width: 100%; height: 100%; padding: 5px" contentEditable="true"><%- raw %></textarea>
+                    <button id="replace_properties_file" style ="width: 100px" class="btn btn-success">Save File</button>
+                </div>
+            </div>
+        </main>
+
+        <%- include("partials/footer.ejs") %>
+    </body>
+
+    <script>
+        $("#replace_properties_file").click(() => {
+            let val = $("#properties").val();
+            socket.emit("properties_replace", val)
+
+            $(this)[0].disabled = true;
+        });
+    </script>
+</html>

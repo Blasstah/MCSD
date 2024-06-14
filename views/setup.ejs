@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>MCSM - Server Configuration</title>
+
+        <%- include("partials/libs.ejs") %>
+    </head>
+    <body>
+        <main class="vw-100 vh-100 d-flex flex-column gap-3 justify-content-center align-items-center">
+            <h3>Minecraft Server Initial Setup</h3>
+            <p class="mt-0 mb-0">It won't take you more than 8 minutes. Just make sure to go through it carefully.</p>
+            <div class="card w-50" style="height: 60%">
+                <div class="step" id="step1">
+                    <h3>Step 1: Server Installation</h3>
+                    <hr class="m-0 mb-2">
+                    <h5>Firstly, you need to place a server JAR file into the "mc_server" directory. You can choose any server engine you wish to: Spigot, Paper, Bukkit, Forge or Fabric. You decide what you want to install.</h5>
+
+                    <p class="mt-3">Here are links for you to quickly download the popular ones:</p>
+                    <ul>
+                        <li><a href="https://www.minecraft.net/pl-pl/download/server">Vanilla - Clean, not modified Minecraft Server Instance, for regular playthroughs</a></li>
+                        <li><a href="https://papermc.io/downloads">Paper - Lightweight Server Engine with Spigot/Bukkit plugins support</a></li>
+                        <li><a href="https://fabricmc.net/use/installer/">Fabric - For modded playthroughs, that wish to install Fabric mods (duh)</a></li>
+                        <li><a href="https://files.minecraftforge.net/net/minecraftforge/forge/">Forge - Same as above, but for all the Forge mods</a></li>
+                    </ul>
+                    <p>After placing the JAR in place, you need to rename it to "server.jar" in order to continue.</p>
+                    <p>Or if you wish, you can unpack there an entire modpack, with all things configured. Just make sure, that the server file is named "server.jar".</p>
+                    <div class="controls">
+                        <button step="1" class="stepBtn btn btn-success">Next Step</button>
+                    </div>
+                </div>
+                <div class="step hidden" id="step2">
+                    <h3>Step 2: Minecraft EULA Agreement</h3>
+                    <hr class="m-0 mb-2">
+                    <h5>In order to run the server, <span class="text-success">you need to accept to the Minecraft EULA.</span> <span class="text-success">Proceeding to the next step indicates agreement to the EULA</span>, and <span class="text-success">automatically sets EULA variable to TRUE</span> in the "eula.txt" file.</h5>
+                    
+                    <a class="mt-2" href="https://aka.ms/MinecraftEULA"><h5>> You can read the Minecraft EULA here</h5></a>
+                    
+                    <div class="controls">
+                        <button step="2" class="stepBtn btn btn-success">I Agree to the Minecraft EULA</button>
+                    </div>
+                </div>
+                <div class="step hidden" id="step3">
+                    <h3>Step 3: Initial Server Launch</h3>
+                    <hr class="m-0 mb-2">
+                    <h5>We need to launch the server, so the configuration files will generate properly. How long it takes? It depends on the server you choose.</h5>
+
+                    <div class="card p-2 w-100 h-100" style="background-color: #111;">
+                        <h5>Console</h5>
+                        <hr class="m-0 mb-2">
+                        <div class="h-100 d-flex flex-column overflow-auto" id="console_output">
+    
+                        </div>
+                    </div>
+                </div>
+                <div class="step hidden" id="step4">
+                    <h3>Step 4: Server Settings</h3>
+                    <hr class="m-0 mb-2">
+                    <h5>It's better to get through some settings before the playthrough. The default values are set for a standard Vanilla w/out plugins. Here's the most important ones: </h5>
+
+                    <div class="mt-3 w-50">
+                        <label for="xmsRange" class="form-label">(Xms) Minimum amount of RAM to use:</label>
+                        <input type="range" unit="MB" class="form-range" min="256" max="1024" value="512" id="xmsRange">
+
+                        <label for="xmxRange" class="form-label">(Xmx) Maximum amount of RAM to use:</label>
+                        <input type="range" unit="MB" class="form-range" min="1024" max="16384" value="2048" id="xmxRange">
+                        <br><br>
+                        <label for="difficulty" class="form-label">Difficulty:</label>
+                        <select class="form-select mb-3" id="difficulty">
+                            <option value="peaceful">Peaceful</option>
+                            <option value="easy">Easy</option>
+                            <option value="normal">Normal</option>
+                            <option value="hard">Hard</option>
+                        </select>
+
+                        <label for="viewDistanceRange" class="form-label">View Distance:</label>
+                        <input type="range" unit="chunks" class="form-range" min="4" max="16" value="8" id="viewDistanceRange">
+
+                        <label for="simDistanceRange" class="form-label">Simulation Distance:</label>
+                        <input type="range" unit="chunks" class="form-range" min="4" max="16" value="8" id="simDistanceRange">
+                    </div>
+                    <div class="controls">
+                        <button step="4" class="stepBtn btn btn-success">Finish initial Setup</button>
+                    </div>
+                </div>
+            </div>
+            <div class="progress w-50">
+                <div id="step_progress" class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" style="width: 25%;"
+                    aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">Setup Progress
+                </div>
+            </div>
+        </main>
+
+        <style>
+            .step.hidden {
+                display: none;
+            }
+
+            .step {
+                display: flex;
+                flex-direction: column;
+
+                width: 100%;
+                height: 100%;
+                padding: 10px;
+            }
+
+            .step .controls {
+                justify-content: flex-end;
+                align-self: flex-end;
+                height: 100%;
+                display: flex;
+                align-items: flex-end;
+            }
+        </style>
+
+        <script>
+            $(".form-range").each((i, el) => {
+                let forObj = $(`[for="${el.id}"]`);
+                if(forObj.length <= 0) return;
+
+                forObj[0].defText = forObj.text();
+
+                $(el).on("change mousemove", () => {
+                    forObj.text(forObj[0].defText + " " + $(el).val() + " " + $(el).attr("unit"))
+                })
+
+                forObj.text(forObj[0].defText + " " + $(el).val() + " " + $(el).attr("unit"))
+            })
+
+            function printToConsole(log) {
+                const clean = DOMPurify.sanitize(log);
+
+                $("#console_output").append(`<span class="font-monospace console-log">${clean.replaceAll("\n", "<br>")}</span>`)
+                $("#console_output").scrollTop($("#console_output").prop("scrollHeight"));
+            }
+
+            socket.on("console", (log) => {
+                printToConsole(log);
+            })
+
+            let currentStep = 1;
+            let sendAlready = false;
+
+            function nextStep(id) {
+                for(let el of $(".step")) {
+                    $(el).addClass("hidden");
+                }
+
+                $(`#step${id}`).removeClass("hidden");
+
+                currentStep = id;
+            }
+
+            $(".stepBtn").on("click", (ev) => {
+
+                let obj = {step: currentStep}
+
+                if(currentStep == 4) {
+                    obj.data = {};
+                    obj.data.Xms = $("#xmsRange").val();
+                    obj.data.Xmx = $("#xmxRange").val();
+                    obj.data.difficulty = $("#difficulty").val();
+                    obj.data.viewDistance = $("#viewDistanceRange").val();
+                    obj.data.simDistance = $("#simDistanceRange").val();
+                }
+
+                console.log(obj);
+
+                socket.emit("step_proceed", obj);
+
+                sendAlready = true;
+            })
+
+            socket.on("step_status", (args) =>  {
+                console.log(args);
+
+                if(args.next) nextStep(args.next);
+
+                if(args.error) {
+                    alert(args.error);
+                }
+
+                if(args.redirect) window.location.reload();
+
+                sendAlready = false;
+            })
+
+            $("#step_progress").css("width", (currentStep * 25) + "%")
+        </script>
+    </body>
+</html>

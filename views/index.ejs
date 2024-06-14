@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>MCSM - Minecraft Server Management Software</title>
+
+        <%- include("partials/libs.ejs") %>
+    </head>
+    <body path="/" class="d-flex flex-column vh-100">
+        <%- include("partials/navigation.ejs"); %>
+        <main class="vw-100 vh-100 gap-3 p-2">
+            <h3>Dashboard</h3>
+            <hr class="m-1 mb-3">
+            <div class="d-flex gap-3 justify-content-center">
+                <div class="card p-2" style="background-color: #111; width: 1000px; height: 700px">
+                    <h5>Console</h5>
+                    <hr class="m-0 mb-2">
+                    <div class="h-100 d-flex flex-column overflow-auto" id="console_output">
+
+                    </div>
+                    <div class="input-group">
+                        <input id="command_input" type="text" class="font-monospace form-control" placeholder="">
+                        <button id="command_send" class="btn btn-success">Send</button>
+                    </div>
+                </div>
+                <div class="d-flex flex-column gap-2" style="width: 560px; height: 700px">
+                    <div class="card p-2" style="background-color: #111; width: 100%; height: 50%">
+                        <% if(data.query_enabled) { %>
+                        <h5 id="player_count">Loading...</h3>
+                        <hr class="m-0 mb-2">
+                        <div id="player_holder" class="d-flex gap-2 h-100">
+
+                        </div>
+                        <% }else { %>
+                        <h5 id="player_count">Query is disabled, can't gather any data.</h3>
+                        <hr class="m-0 mb-2">
+                        <p>Query needs to be enabled in order to track how many players, and which players are online in the server.</p>
+                        <p>With it enabled, regular players will also be able to get data about the server via various sources, but it's the same data as you see in the server browser.</p>
+                        <button id="enable_query_button" class="btn btn-success w-50">Click here to enable Query</button>
+                        <% } %>
+                    </div>
+                    <div class="card p-2" style="background-color: #111; width: 100%; height: 50%">
+                        <h5>Server Performance</h3>
+                        <hr class="m-0 mb-2">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <%- include("partials/footer.ejs") %>
+    </body>
+
+    <script>
+        const console_output = $("#console_output");
+        const command_input = $("#command_input");
+        const command_button = $("#command_send");
+
+        function printToConsole(log) {
+            const clean = DOMPurify.sanitize(log);
+
+            console_output.append(`<span class="font-monospace console-log">${clean.replaceAll("\n", "<br>")}</span>`)
+            console_output.scrollTop(console_output.prop("scrollHeight"));
+        }
+
+        socket.on("console", (log) => {
+            printToConsole(log);
+        })
+
+        command_input.on("keydown", function(e) {
+            if(e.keyCode != 13) return;
+
+            printToConsole("> " + command_input.val());
+            socket.emit("command", command_input.val());
+
+            command_input.val("");
+        })
+
+        command_button.on("click", () => {
+            printToConsole("> " + command_input.val());
+            socket.emit("command", command_input.val());
+
+            command_input.val("");
+        })
+    </script>
+
+    <script>
+        /* Performance Chart */
+        const ctx = document.getElementById('performanceChart');
+        let perfChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    type: 'line',
+                    label: 'CPU Usage (%)',
+                    data: [],
+                    tension: 0.1,
+                }, {
+                    type: 'line',
+                    label: 'RAM Usage (%)',
+                    data: [],
+                    borderWidth: 1,
+                }]
+            },
+            options: {
+            scales: {
+                y: {
+                    min: 0,
+                    beginAtZero: true
+                }
+            }
+            }
+        });
+
+        function addPerformanceData(time, ram, ramPercent, cpu) {
+            if(perfChart.data.labels.length > 10) {
+                perfChart.data.labels.shift();
+                for(let el of perfChart.data.datasets)  {
+                    el.data.shift();
+                }
+            }
+
+            perfChart.data.labels.push( (ram/1024).toFixed(2) + " GB");
+            perfChart.data.datasets[1].data.push(ramPercent)
+            perfChart.data.datasets[0].data.push(cpu.toFixed(2))
+
+            perfChart.update();
+        }
+        
+        socket.on("status_update", (status) => {
+            if(status.performance)
+                addPerformanceData(status.performance.time, status.performance.memory,  status.performance.memoryPercentage, status.performance.cpu)
+        })
+
+        $("#enable_query_button").click(() => {
+            socket.emit("enable_query");
+        })
+    </script>
+
+    <% if(data.query_enabled) { %>
+    <script>
+        /* Status Update */
+        const player_holder = $("#player_holder");
+        const player_count = $("#player_count");
+
+        let loadedPlayers = []
+
+        socket.on("status_update", (status) => {
+            if(status.query) {
+                player_count.text(status.query.players.length);
+
+                for(let el of status.query.players) {
+                    if(loadedPlayers.includes(el)) continue;
+
+                    addPlayer(el);
+                }
+
+                for(let el of loadedPlayers) {
+                    if(status.query.players.includes(el)) continue;
+
+                    removePlayer(el);
+                }
+
+                player_count.text(`Players Online: ${status.query.players.length}/${status.query.maxPlayers}`)
+            }else player_count.text("Could not resolve server query");
+        })
+
+        function addPlayer(username) {
+            let playerHTML = `<img class="player_entry" src="https://mc-heads.net/head/${username}/64.png" 
+            width="48" height="48" data-bs-placement="bottom" data-bs-toggle="tooltip" data-bs-title="${username}" username="${username}">`
+
+            player_holder.append(playerHTML);
+
+            let tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+            let tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+
+            loadedPlayers.push(username);
+        }
+
+        function removePlayer(username) {
+            player_holder.find(`[username="${username}"]`).remove();
+
+            const index = loadedPlayers.indexOf(username);
+            if (index > -1) loadedPlayers.splice(index, 1);
+        }
+
+        $(document.body).on("click", ".player_entry", (ev) => {
+            command_input.val(command_input.val() + $(ev.target).attr("username"))
+        })
+    </script>
+    <% } %>
+</html>

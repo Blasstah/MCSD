@@ -1,0 +1,69 @@
+<nav class="navbar bg-dark" data-bs-theme="dark">
+    <div class="container-fluid">
+        <div class="d-flex gap-3 align-items-center">
+            <a class="btn btn-secondary" data-bs-toggle="offcanvas" href="#menu"><i class="bi bi-list"></i></a>
+            
+            <h4 class="mb-0">MCSM: "<%-data.motd %>"</h4>
+        </div>
+        <button id="toggle_server" class="d-flex gap-2 btn btn-danger"> 
+            Start Server
+        </button>
+    </div>
+</nav>
+<div class="offcanvas offcanvas-start" tabindex="-1" id="menu" aria-labelledby="menuCanvasLabel">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="menuCanvasLabel">Menu</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        <div id="side-menu" class="list-group">
+            <a href="/" class="list-group-item list-group-item-action"><i class="bi bi-speedometer"></i>Dashboard</a>
+            <a href="/settings" class="list-group-item list-group-item-action"><i class="bi bi-gear"></i>Server Settings</a>
+            <a href="/addons" class="list-group-item list-group-item-action disabled"><i class="bi bi-plugin"></i>Plugins / Mods</a>
+            <a href="/micros" class="list-group-item list-group-item-action"><i class="bi bi-at"></i>Command Micros</a>
+            <a href="/backups" class="list-group-item list-group-item-action"><i class="bi bi-folder2-open"></i>Backups</a>
+            <a href="/micros" class="list-group-item list-group-item-action"><i class="bi bi-discord"></i>Discord Integration</a>
+          </div>
+    </div>
+</div>
+
+<script>
+    const toggleButton = $("#toggle_server");
+
+    let body = $(document.body);
+    $( "#side-menu > a" ).each(function( index ) {
+        if(body.attr("path") && body.attr("path") == $(this).attr("href")) 
+            $(this).addClass("active");
+    });
+
+    let lastToggleState = false;
+    socket.on("status_update", (status) => {
+        if(status.running) {
+            if(!lastToggleState) {
+                toggleButton.removeClass("btn-success");
+                toggleButton.addClass("btn-danger");
+                toggleButton.html(`<i class="bi bi-stop-circle"></i> Stop Server`)
+                lastToggleState = true;
+            }
+        }else if(lastToggleState) {
+            toggleButton.removeClass("btn-danger");
+            toggleButton.addClass("btn-success");
+            toggleButton.html(`<i class="bi bi-play-circle"></i> Start Server`)
+            lastToggleState = false;
+        }
+    })
+
+    toggleButton.on("click", () => {
+        toggleButton.find("i").remove();
+        toggleButton.prepend(`
+            <div class="d-flex justify-content-center align-items-center">
+                <div class="spinner-border spinner-border-sm"
+                    role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        `)
+
+        socket.emit("toggle_server");
+    })
+</script>

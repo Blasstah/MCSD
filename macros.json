@@ -1,0 +1,15 @@
+[
+    {
+        "name": "Death Counter",
+        "desc": "Adds a death counter to the Player List",
+        "author": "Blasstah",
+        "apply": [
+            "scoreboard objectives add deathCounter deathCount \"Deaths\"",
+            "scoreboard objectives setdisplay list deathCounter"
+        ],
+        "revert": [
+            "scoreboard objectives remove deathCounter"
+        ],
+        "speed": 200
+    }
+]

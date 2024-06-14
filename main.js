@@ -56,6 +56,10 @@ function saveSettings() {
 
 let macros = []
 
+function saveMacros() {
+    fs.writeFileSync("macros.json", JSON.stringify(macros, null, 4))
+}
+
 if(fs.existsSync(path.join(__dirname, "settings.json"))) global_settings = JSON.parse(fs.readFileSync(path.join(__dirname, "settings.json")))
     if(fs.existsSync(path.join(__dirname, "macros.json"))) macros = JSON.parse(fs.readFileSync(path.join(__dirname, "macros.json")))
 
@@ -199,6 +203,101 @@ function registerSecureSocket(socket) {
         currentServer.sendCommand(cmd);
     })
 
+    socket.on("macro_apply", (index) => {
+        if(typeof index != "number") return;
+        if(!currentServer) {
+            return;
+        }
+
+        if(macros.length <= index) return;
+
+        currentServer.doMacro(macros[index]);
+    })
+
+    socket.on("macro_revert", (index) => {
+        if(typeof index != "number") return;
+        if(!currentServer) {
+            return;
+        }
+
+        if(macros.length <= index) return;
+
+        currentServer.revertMacro(macros[index]);
+    })
+
+    socket.on("macro_remove", (index) => {
+        if(typeof index != "number") return;
+        if(macros.length <= index) return;
+
+        macros.splice(index, 1)
+        saveMacros();
+        
+        socket.emit("force_reload")
+    })
+
+    socket.on("macro_code", (index) => {
+        if(index >= macros.length) {
+            return;
+        }
+
+        let json = JSON.stringify(macros[index]);
+        let base64 = btoa(json);
+
+        socket.emit("macro_code", {code: base64, index})
+    })
+
+    socket.on("add_macro_code", (code) => {
+        if(typeof code != "string") return;
+
+        try {
+            let json = atob(code)
+            let macro = JSON.parse(json);
+            if(macro == null) return;
+
+            if(macro.apply == null) return;
+            if(macro.revert == null) return
+            if(macro.name == null) return;
+            if(macro.desc == null) return;
+            if(macro.author == null) return;
+
+            let obfMacro = {
+                name: macro.name,
+                author: macro.author,
+                desc: macro.desc,
+                apply: macro.apply,
+                revert: macro.revert,
+            }
+
+            macros.push(obfMacro);
+            saveMacros();
+
+            socket.emit("force_reload")
+        }catch {
+            // Error
+        }
+    })
+
+    socket.on("create_macro", (data) => {
+        if(data.apply == null) return;
+        if(data.revert == null) return
+        if(data.name == null) return;
+        if(data.desc == null) return;
+        if(data.author == null) return;
+
+        let obfMacro = {
+            name: data.name,
+            author: data.author,
+            desc: data.desc,
+            apply: data.apply,
+            revert: data.revert,
+        }
+
+        macros.push(obfMacro);
+        saveMacros();
+
+        socket.emit("force_reload")
+    })
+
     socket.on("properties_replace", (props) => {
         if(typeof props != "string") return;
 
@@ -228,7 +327,7 @@ function registerSecureSocket(socket) {
 
     socket.on("logout", () => {
         socket.request.session.destroy();
-        loggedSockets = loggedSockets.slice(loggedSockets.indexOf(socket), 1);
+        loggedSockets.splice(loggedSockets.indexOf(socket), 1);
 
         socket.emit("force_reload")
     })
@@ -324,33 +423,38 @@ class MCServer {
 
         this.doMacro = (macro) => {
             if(macro.apply == null) return;
-            if(macro.speed == null) return;
 
             let index = 0;
+            
+            currentServer.serverMessage(`Applying \\\"${macro.name}\\\" macro...`)
             for(let cmd of macro.apply) {
                 if(index == 0)
                     this.sendCommand(cmd);
                 else {
-                    let myCmd = cmd;
                     setTimeout(() => {
-                        this.sendCommand(myCmd);
-                    }, index*macro.speed);
+                        this.sendCommand(cmd);
+                    }, index*50);
                 }
 
                 index++;
             }
-
-            setTimeout(() => {
-                this.sendCommand(cmd);
-            }, (index-1)*macro.speed);
         }
 
         this.revertMacro = (macro) => {
             if(macro.revert == null) return;
-            if(macro.speed == null) return;
 
+            currentServer.serverMessage(`Reverting \\\"${macro.name}\\\" macro...`)
+            let index = 0;
             for(let cmd of macro.revert) {
-                this.sendCommand(cmd);
+                if(index == 0)
+                    this.sendCommand(cmd);
+                else {
+                    setTimeout(() => {
+                        this.sendCommand(cmd);
+                    }, index*50);
+                }
+
+                index++;
             }
         }
 

@@ -3,6 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="css/macros.css">
         <title>MCSM - Minecraft Server Management Software</title>
 
         <%- include("partials/libs.ejs") %>
@@ -12,9 +13,144 @@
         <main class="vw-100 vh-100 gap-3 p-2">
             <h3>Command Macros</h3>
             <hr class="m-1 mb-3">
-
+            <div class="d-flex gap-2 flex-wrap">
+                <% 
+                    let index = 0
+                    for(let el of macros) { %>
+                    <div index="<%- index %>" class="macro card p-2 d-flex flex-column">
+                        <div class="d-flex" style="justify-content: space-between;">
+                            <div class="d-flex gap-2">
+                                <h5 class="m-0 mb-2"><%- el.name %></h5>
+                                <p class="text-muted m-0">by <%- el.author %></p>
+                            </div>
+                            <button index="<%- index %>" class="macro_remove btn p-0 m-0 bg-transparent" style="margin-right: 0 !important;"><i class="bi bi-trash"></i></button>
+                        </div>
+                        <hr class="m-0 mb-1 mt-2">
+                        <div class="h-100">
+                            <p><%- el.desc %></p>
+                        </div>
+                        <div class="d-flex gap-2 w-100" style="justify-content: space-between;">
+                            <div class="d-flex gap-2">
+                                <button index="<%- index %>" class="macro_apply btn btn-success"><i class="bi bi-plus-circle"></i>Apply</button>
+                                <button index="<%- index %>" class="macro_revert btn btn-danger"><i class="bi bi-x-circle"></i>Revert</button>    
+                            </div>
+                            <button index="<%- index %>" class="macro_copy btn btn-secondary"><i class="bi bi-clipboard2"></i>Get Code</button>
+                        </div>
+                    </div>
+                <% index++; } %>
+                <div class="macro card p-2 d-flex flex-column">
+                    <div class="d-flex gap-2 justify-content-center">
+                        <i class="bi bi-plus-square" style="font-size: 50px;"></i>
+                    </div>
+                    <div class="h-100 d-flex flex-column p-3 gap-3">
+                        <button data-bs-toggle="modal" data-bs-target="#add_code_modal" class="btn btn-warning">Add from Code</button>
+                        <button data-bs-toggle="modal" data-bs-target="#create_modal" class="btn btn-success">Create New</button>
+                    </div>
+                </div>
+            </div>
         </main>
 
         <%- include("partials/footer.ejs") %>
     </body>
+
+    <div id="add_code_modal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add from Code</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </button>
+            </div>
+            <div class="modal-body">
+                <textarea placeholder="Enter base64 code here..." id="add_code_area" class="w-100 p-1" style="height: 200px; background-color: #111; font-family: monospace; color: white"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button id="macro_add_code" type="button" class="btn btn-success">Add</button>
+                <button type="button" class="btn btn-warning" data-bs-dismiss="modal">Cancel</button>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="create_modal" class="modal fade modal-lg" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex w-100 gap-2 mb-1">
+                    <input type="text" class="form-control" id="new_macro_name" placeholder="Title">
+                    <input type="text" class="form-control" id="new_macro_author" placeholder="Author">    
+                </div>
+                <textarea class="form-control" id="new_macro_desc" style="resize: none;" placeholder="Short description"></textarea>
+                <hr>
+                <h5 class="mt-2">>> Apply command flow</h5>
+                <textarea spellcheck="false" placeholder="Apply commands, one command each line..." id="new_macro_apply" class="w-100 p-1" style="resize: none; height: 200px; background-color: #111; font-family: monospace; color: white"></textarea>
+                <h5 class="mt-2">>> Revert command flow</h5>
+                <textarea spellcheck="false" placeholder="Revert commands, one command each line..." id="new_macro_revert" class="w-100 p-1" style="resize: none; height: 200px; background-color: #111; font-family: monospace; color: white"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button id="macro_create" type="button" class="btn btn-success">Create</button>
+                <button type="button" class="btn btn-warning" data-bs-dismiss="modal">Cancel</button>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $("#macro_add_code").click(() => {
+            socket.emit("add_macro_code", $("#add_code_area").val())
+        });
+
+        $("#macro_create").click(() => {
+            let title = $("#new_macro_name").val();
+            let author = $("#new_macro_author").val();
+            let desc = $("#new_macro_desc").val();
+            
+            let apply = $("#new_macro_apply").val().split('\n');
+            let revert = $("#new_macro_revert").val().split('\n');
+
+            let data = {
+                name: title,
+                author,
+                desc,
+                apply,
+                revert
+            }
+
+            socket.emit("create_macro", data)
+        });
+
+        $(".macro_remove").click(function() {
+            socket.emit("macro_remove", Number($(this).attr("index")));
+        });
+
+        $(".macro_apply").click(function() {
+            socket.emit("macro_apply", Number($(this).attr("index")))
+        });
+
+        $(".macro_revert").click(function() {
+            socket.emit("macro_revert", Number($(this).attr("index")))
+        });
+
+        $(".macro_copy").click(function() {
+            socket.emit("macro_code", Number($(this).attr("index")))
+        });
+
+        socket.on("macro_code", (obj) => {
+            navigator.clipboard.writeText(obj.code);
+
+            let el = $(`.macro_copy[index="${obj.index}"]`);
+            let html = el.html();
+            el.addClass("btn-success")
+            el.text("Copied!");
+            setTimeout(() => {
+                el.html(html);
+                el.removeClass("btn-success");
+            }, 1000)
+        })
+    </script>
 </html>

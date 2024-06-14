@@ -5,6 +5,11 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>MCSM - Minecraft Server Management Software</title>
 
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css" integrity="sha512-uf06llspW44/LZpHzHT6qBOIVODjWtv4MxCricRxkzvopAlSWnTf6hpZTFxuuZcuNE9CBQhqE0Seu1CoRk84nQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js" integrity="sha512-8RnEqURPUc5aqFEN04aQEiPlSAdE0jlFS/9iGgUyNtwFnSKCXhmB6ZTNl7LnDtDWKabJIASzXrzD0K+LYexU9g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/properties/properties.min.js" integrity="sha512-P4OaO+QWj1wPRsdkEHlrgkx+a7qp6nUC8rI6dS/0/HPjHtlEmYfiambxowYa/UfqTxyNUnwTyPt5U6l1GO76yw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/seti.min.css" integrity="sha512-A7KLVdYbXryV98af9mTrVoUPuUuq94hkMjPgzHnrfi6QZbq9ylrgbRKp31/DQ8qareLzA3e56/VmIrrQlaDAqw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
         <%- include("partials/libs.ejs") %>
     </head>
     <body path="/settings" class="d-flex flex-column vh-100">
@@ -14,8 +19,8 @@
             <hr class="m-1 mb-3">
             <div class="d-flex gap-3 justify-content-center">
                 <div class="d-flex flex-column align-items-end" style="height: 80vh; width: 35%;">
-                    <textarea id="properties" spellcheck="false" class="mb-2" style="resize: none; font-family: monospace; color: white; background-color: #111; width: 100%; height: 100%; padding: 5px" contentEditable="true"><%- raw %></textarea>
-                    <button id="replace_properties_file" style ="width: 100px" class="btn btn-success">Save File</button>
+                    <textarea id="properties" spellcheck="false"><%- raw %></textarea>
+                    <button id="replace_properties_file" style ="width: 100px" class="btn btn-success mt-2">Save File</button>
                 </div>
                 <div class="d-flex flex-column" style="height: 80vh; width: 35%;">
                     <h3>AdminPanel</h3>
@@ -43,6 +48,12 @@
     </body>
 
     <script>
+        let editor = CodeMirror.fromTextArea(document.getElementById('properties'), {
+        mode:  "properties"
+        });
+        editor.setSize("100%", "100%")
+        editor.setOption("theme", "seti")
+
         $(".form-range").each((i, el) => {
             let forObj = $(`[for="${el.id}"]`);
             if(forObj.length <= 0) return;
@@ -57,7 +68,7 @@
         })
 
         $("#replace_properties_file").click(() => {
-            let val = $("#properties").val();
+            let val = editor.getValue();
             socket.emit("properties_replace", val)
 
             $(this)[0].disabled = true;

@@ -1,15 +1,26 @@
 [
     {
         "name": "Death Counter",
-        "desc": "Adds a death counter to the Player List",
         "author": "Blasstah",
+        "desc": "Adds a death counter to the Player List",
         "apply": [
             "scoreboard objectives add deathCounter deathCount \"Deaths\"",
             "scoreboard objectives setdisplay list deathCounter"
         ],
         "revert": [
             "scoreboard objectives remove deathCounter"
+        ]
+    },
+    {
+        "name": "Health Display",
+        "author": "Blasstah",
+        "desc": "Displays player's health beneath the nametag.",
+        "apply": [
+            "scoreboard objectives add healthDisplay health \"♡\"",
+            "scoreboard objectives setdisplay below_name healthDisplay"
         ],
-        "speed": 200
+        "revert": [
+            "scoreboard objectives remove healthDisplay"
+        ]
     }
 ]

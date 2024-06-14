@@ -27,6 +27,7 @@ const sessionMiddleware = session({
 const spawn = require("child_process").spawn;
 
 var AnsiConvert = require('ansi-to-html');
+const { escape, unescape } = require("querystring");
 var ansiConvert = new AnsiConvert();
 
 /* Registration */
@@ -241,7 +242,7 @@ function registerSecureSocket(socket) {
         }
 
         let json = JSON.stringify(macros[index]);
-        let base64 = btoa(json);
+        let base64 = btoa(escape(json));
 
         socket.emit("macro_code", {code: base64, index})
     })
@@ -251,7 +252,7 @@ function registerSecureSocket(socket) {
 
         try {
             let json = atob(code)
-            let macro = JSON.parse(json);
+            let macro = JSON.parse(unescape(json));
             if(macro == null) return;
 
             if(macro.apply == null) return;

@@ -16,7 +16,7 @@
         "author": "Blasstah",
         "desc": "Displays player's health beneath the nametag.",
         "apply": [
-            "scoreboard objectives add healthDisplay health \"♡\"",
+            "scoreboard objectives add healthDisplay health \"§c❤\"",
             "scoreboard objectives setdisplay below_name healthDisplay"
         ],
         "revert": [

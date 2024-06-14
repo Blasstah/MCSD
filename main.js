@@ -32,6 +32,14 @@ var ansiConvert = new AnsiConvert();
 
 /* Registration */
 
+let global_settings = { password: "admin", Xms: 512, Xmx: 2048 };
+if(fs.existsSync(path.join(__dirname, "settings.json"))) 
+    global_settings = JSON.parse(fs.readFileSync(path.join(__dirname, "settings.json")))
+
+function saveSettings() {
+    fs.writeFileSync("settings.json", JSON.stringify(global_settings, null, 4))
+}
+
 app.use(sessionMiddleware)
 io.engine.use(sessionMiddleware)
 
@@ -49,20 +57,13 @@ app.use(express.static("node_modules/dompurify/dist"))
 
 app.set('view engine', 'ejs');
 
-let global_settings = { password: "admin", Xms: 512, Xmx: 2048 };
-
-function saveSettings() {
-    fs.writeFileSync("settings.json", JSON.stringify(global_settings, null, 4))
-}
-
 let macros = []
+if(fs.existsSync(path.join(__dirname, "macros.json"))) 
+    macros = JSON.parse(fs.readFileSync(path.join(__dirname, "macros.json")))
 
 function saveMacros() {
     fs.writeFileSync("macros.json", JSON.stringify(macros, null, 4))
 }
-
-if(fs.existsSync(path.join(__dirname, "settings.json"))) global_settings = JSON.parse(fs.readFileSync(path.join(__dirname, "settings.json")))
-    if(fs.existsSync(path.join(__dirname, "macros.json"))) macros = JSON.parse(fs.readFileSync(path.join(__dirname, "macros.json")))
 
 /* Requests */
 

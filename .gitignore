@@ -1,3 +1,6 @@
+# MCSM
+mc_server/
+
 # Logs
 logs
 *.log

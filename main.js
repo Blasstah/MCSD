@@ -1,3 +1,26 @@
+/* Server Data Context */
+class ServerDataContext {
+    constructor() {
+        this.app = app;
+        this.io = io;
+        
+        this.currentServer = function() {
+            return currentServer;
+        }
+        
+        this.properties = function() {
+            return new MCServerProperties();
+        }
+
+        this.relativePath = (file) => {
+            return path.join(__dirname, file)
+        }
+
+        this.addEntryPoint = addEntryPoint;
+        this.dir = __dirname;
+    }
+}
+
 /* Libraries */
 const path = require("path");
 const fs = require("fs")
@@ -9,6 +32,7 @@ const properties = require("properties-parser");
 const express = require('express');
 const app = express();
 const bodyParser = require("body-parser")
+const fileupload = require("express-fileupload");
 
 const http = require('http');
 const server = http.createServer(app);
@@ -27,7 +51,6 @@ const sessionMiddleware = session({
 const spawn = require("child_process").spawn;
 
 var AnsiConvert = require('ansi-to-html');
-const { escape, unescape } = require("querystring");
 var ansiConvert = new AnsiConvert();
 
 /* Registration */
@@ -48,6 +71,12 @@ app.use(bodyParser.urlencoded({
   extended: true
 }));
 
+app.use(fileupload({
+    useTempFiles: true,
+    tempFileDir: "/tmp/",
+    debug: true,
+}))
+
 app.use(express.static("client"))
 app.use(express.static("node_modules/socket.io/client-dist"))
 app.use(express.static("node_modules/bootstrap/dist"))
@@ -56,14 +85,6 @@ app.use(express.static("node_modules/chart.js/dist"))
 app.use(express.static("node_modules/dompurify/dist"))
 
 app.set('view engine', 'ejs');
-
-let macros = []
-if(fs.existsSync(path.join(__dirname, "macros.json"))) 
-    macros = JSON.parse(fs.readFileSync(path.join(__dirname, "macros.json")))
-
-function saveMacros() {
-    fs.writeFileSync("macros.json", JSON.stringify(macros, null, 4))
-}
 
 /* Requests */
 
@@ -77,6 +98,14 @@ function generateDashboardData() {
         }
     };
 }
+
+app.post('/login', function(req, res) {
+    if(req.body.pass == global_settings.password) {
+        req.session.logged = true;
+    }
+
+    res.redirect("/");
+});
 
 app.get('/', function(req, res) {
     if(req.session.logged) {
@@ -107,32 +136,31 @@ app.get('/settings', function(req, res) {
     res.render('login');
 });
 
-app.get('/macros', function(req, res) {
-    if(req.session.logged) {
-        if(fs.existsSync(path.join(__dirname, "mc_server/server.jar"))) {
-            var data = generateDashboardData();
-            data.macros = macros;
-            res.render("macros", data);
+function addEntryPoint(entry, callback) {
+    app.get(entry, function(req, res) {
+        if(req.session.logged) {
+            if(fs.existsSync(path.join(__dirname, "mc_server/server.jar"))) {
+                var data = generateDashboardData();
+                callback(req, res, data)
+            }
+            else res.render("setup")
+    
+            return;
         }
-        else res.render("setup")
+    
+        res.render('login');
+    });
+}
 
-        return;
-    }
-
-    res.render('login');
-});
-
-app.post('/login', function(req, res) {
-    if(req.body.pass == global_settings.password) {
-        req.session.logged = true;
-    }
-
-    res.redirect("/");
-});
+/* Modules */
+const MODULES = [
+    require("./modules/macros")(new ServerDataContext()), // Macros Module
+    require("./modules/addons")(new ServerDataContext()), // Addons Module
+]
+/* End of Modules */
 
 /* Socket */
 let loggedSockets = [];
-
 function initialSetupRegister(socket) {
     socket.on("step_proceed", (args) => {
         switch(args.step) {
@@ -205,100 +233,10 @@ function registerSecureSocket(socket) {
         currentServer.sendCommand(cmd);
     })
 
-    socket.on("macro_apply", (index) => {
-        if(typeof index != "number") return;
-        if(!currentServer) {
-            return;
-        }
-
-        if(macros.length <= index) return;
-
-        currentServer.doMacro(macros[index]);
-    })
-
-    socket.on("macro_revert", (index) => {
-        if(typeof index != "number") return;
-        if(!currentServer) {
-            return;
-        }
-
-        if(macros.length <= index) return;
-
-        currentServer.revertMacro(macros[index]);
-    })
-
-    socket.on("macro_remove", (index) => {
-        if(typeof index != "number") return;
-        if(macros.length <= index) return;
-
-        macros.splice(index, 1)
-        saveMacros();
-        
-        socket.emit("force_reload")
-    })
-
-    socket.on("macro_code", (index) => {
-        if(index >= macros.length) {
-            return;
-        }
-
-        let json = JSON.stringify(macros[index]);
-        let base64 = btoa(escape(json));
-
-        socket.emit("macro_code", {code: base64, index})
-    })
-
-    socket.on("add_macro_code", (code) => {
-        if(typeof code != "string") return;
-
-        try {
-            let json = atob(code)
-            let macro = JSON.parse(unescape(json));
-            if(macro == null) return;
-
-            if(macro.apply == null) return;
-            if(macro.revert == null) return
-            if(macro.name == null) return;
-            if(macro.desc == null) return;
-            if(macro.author == null) return;
-
-            let obfMacro = {
-                name: macro.name,
-                author: macro.author,
-                desc: macro.desc,
-                apply: macro.apply,
-                revert: macro.revert,
-            }
-
-            macros.push(obfMacro);
-            saveMacros();
-
-            socket.emit("force_reload")
-        }catch {
-            // Error
-        }
-    })
-
-    socket.on("create_macro", (data) => {
-        if(data.apply == null) return;
-        if(data.revert == null) return
-        if(data.name == null) return;
-        if(data.desc == null) return;
-        if(data.author == null) return;
-
-        let obfMacro = {
-            name: data.name,
-            author: data.author,
-            desc: data.desc,
-            apply: data.apply,
-            revert: data.revert,
-        }
-
-        macros.push(obfMacro);
-        saveMacros();
-
-        socket.emit("force_reload")
-    })
+    MODULES.forEach(module => {
+        if(module.registerSecureSocket)
+            module.registerSecureSocket(socket);
+    });
 
     socket.on("properties_replace", (props) => {
         if(typeof props != "string") return;
@@ -421,43 +359,6 @@ class MCServer {
 
         this.sendCommand = (cmd) => {
             this.process.stdin.write(cmd+"\n");
-        }
-
-        this.doMacro = (macro) => {
-            if(macro.apply == null) return;
-
-            let index = 0;
-            
-            currentServer.serverMessage(`Applying \\\"${macro.name}\\\" macro...`)
-            for(let cmd of macro.apply) {
-                if(index == 0)
-                    this.sendCommand(cmd);
-                else {
-                    setTimeout(() => {
-                        this.sendCommand(cmd);
-                    }, index*50);
-                }
-
-                index++;
-            }
-        }
-
-        this.revertMacro = (macro) => {
-            if(macro.revert == null) return;
-
-            currentServer.serverMessage(`Reverting \\\"${macro.name}\\\" macro...`)
-            let index = 0;
-            for(let cmd of macro.revert) {
-                if(index == 0)
-                    this.sendCommand(cmd);
-                else {
-                    setTimeout(() => {
-                        this.sendCommand(cmd);
-                    }, index*50);
-                }
-
-                index++;
-            }
         }
 
         this.serverMessage = (msg) => {

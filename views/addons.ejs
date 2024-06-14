@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>MCSM - Minecraft Server Management Software</title>
+
+        <%- include("partials/libs.ejs") %>
+    </head>
+    <body path="/addons" class="d-flex flex-column vh-100">
+        <%- include("partials/navigation.ejs"); %>
+        <main class="vw-100 vh-100 gap-3 p-2">
+            <div class="d-flex justify-content-center gap-2 h-100">
+                <% if(addons.plugins) { %>
+                <div class="d-flex flex-column w-100">
+                    <h3>Plugins</h3>
+                    <hr class="m-1 mb-3">
+                </div>
+                <% } %>
+                <% if(addons.mods) { %>
+                <div class="d-flex flex-column w-100">
+                    <h3>Mods</h3>
+                    <hr class="m-1 mb-3">
+                </div>
+                <% } %>
+                <% if(!addons.plugins && !addons.mods) { %>
+                    <div class="d-flex flex-column w-100">
+                        <h3>Plugins / Mods</h3>
+                        <hr class="m-1 mb-3">
+                        <h3 class="text-center mt-3">You're running vanilla server, there's no way to install mods or plugins. If you want to do that, consider switching to other server engine (Paper or Fabric fe.)</h3>
+                    </div>
+                <% } %>
+            </div>
+        </main>
+
+        <%- include("partials/footer.ejs") %>
+    </body>
+</html>

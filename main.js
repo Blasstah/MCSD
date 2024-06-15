@@ -240,7 +240,7 @@ function registerSecureSocket(socket) {
 
         new MCServerProperties().replace(props);
         
-        socket.emit("force_reload")
+        ShowNotif(socket, "Successfully updated server.properties!", "success");
     })
 
     socket.on("enable_query", () => {
@@ -403,7 +403,7 @@ class MCServer {
                 }
         
                 performance.memory = Math.round(stats.memory / 1024 / 1024);
-                performance.memoryPercentage = Math.round(((stats.memory / 1024 / 1024)/2048)*100);
+                performance.memoryPercentage = Math.round(((stats.memory / 1024 / 1024)/global_settings.Xmx)*100);
                 performance.cpu = stats.cpu;
 
                 callback(performance);

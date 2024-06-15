@@ -15,7 +15,7 @@
     <body path="/settings" class="d-flex flex-column vh-100">
         <%- include("partials/navigation.ejs"); %>
         <main class="vw-100 vh-100 gap-3 p-2">
-            <h3>Settings</h3>
+            <h3><i class="bi bi-gear"></i>Settings</h3>
             <hr class="m-1 mb-3">
             <div class="d-flex gap-3 justify-content-center">
                 <div class="d-flex flex-column align-items-end" style="height: 80vh; width: 35%;">
@@ -57,6 +57,18 @@
         editor.setSize("100%", "100%")
         editor.setOption("theme", "seti")
 
+        function replacePropertiesFile() {
+            let val = editor.getValue();
+            socket.emit("properties_replace", val)
+        }
+
+        $(".CodeMirror").bind("keyup keydown", function(e){
+            if(e.ctrlKey && e.which == 83){
+                replacePropertiesFile();
+                e.preventDefault();
+            }
+        });
+
         $(".form-range").each((i, el) => {
             let forObj = $(`[for="${el.id}"]`);
             if(forObj.length <= 0) return;
@@ -71,10 +83,7 @@
         })
 
         $("#replace_properties_file").click(() => {
-            let val = editor.getValue();
-            socket.emit("properties_replace", val)
-
-            $(this)[0].disabled = true;
+            replacePropertiesFile()
         });
 
         $("#change_password_visiblity").click(function() {

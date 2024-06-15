@@ -56,31 +56,40 @@ class MacrosModule {
             socket.on("macro_apply", (index) => {
                 if(typeof index != "number") return;
                 if(!this.context.currentServer()) {
+                    this.context.showNotif(socket, "Server needs to be running in order to apply a macro.")
                     return;
                 }
         
                 if(this.macros.length <= index) return;
         
                 this.doMacro(this.macros[index]);
+                this.context.showNotif(socket, `Applied "${this.macros[index].name}" macro"!`, "success")
             })
         
             socket.on("macro_revert", (index) => {
                 if(typeof index != "number") return;
                 if(!this.context.currentServer()) {
+                    this.context.showNotif(socket, "Server needs to be running in order to revert a macro.")
                     return;
                 }
         
                 if(this.macros.length <= index) return;
         
                 this.revertMacro(this.macros[index]);
+                this.context.showNotif(socket, `Reverted "${this.macros[index].name}" macro"!`, "success")
             })
         
             socket.on("macro_remove", (index) => {
                 if(typeof index != "number") return;
-                if(this.macros.length <= index) return;
+                if(this.macros.length <= index) {
+                    this.context.showNotif(socket, "Something went wrong. Could not delete this macro!", "error")
+                    return;
+                }
         
                 this.macros.splice(index, 1)
                 this.save();
+
+                this.context.showNotif(socket, `Successfully removed "${this.macros[index].name}"!`, "success")
                 
                 socket.emit("force_reload")
             })
@@ -92,6 +101,8 @@ class MacrosModule {
         
                 let json = JSON.stringify(this.macros[index]);
                 let base64 = btoa(escape(json));
+
+                this.context.showNotif(socket, `Code for "${this.macros[index].name}" copied to clipboard!`, "success")
         
                 socket.emit("macro_code", {code: base64, index})
             })
@@ -102,13 +113,15 @@ class MacrosModule {
                 try {
                     let json = atob(code)
                     let macro = JSON.parse(unescape(json));
-                    if(macro == null) return;
+                    if(macro == null) {
+                        this.context.showNotif(socket, "Provided code is invalid!", "error")
+                        return;
+                    }
         
-                    if(macro.apply == null) return;
-                    if(macro.revert == null) return
-                    if(macro.name == null) return;
-                    if(macro.desc == null) return;
-                    if(macro.author == null) return;
+                    if(macro.apply == null || macro.revert == null || macro.revert == null || macro.name == null || macro.desc == null || macro.author) {
+                        this.context.showNotif(socket, "Provided code is invalid!", "error")
+                        return;
+                    }
         
                     let obfMacro = {
                         name: macro.name,
@@ -120,19 +133,37 @@ class MacrosModule {
         
                     this.macros.push(obfMacro);
                     this.save();
+
+                    this.context.showNotif(socket, `Successfully imported "${obfMacro.name}"!`, "success")
         
                     socket.emit("force_reload")
                 }catch {
                     // Error
+                    this.context.showNotif(socket, "Provided code is invalid!", "error")
                 }
             })
         
             socket.on("create_macro", (data) => {
-                if(data.apply == null) return;
-                if(data.revert == null) return
-                if(data.name == null) return;
-                if(data.desc == null) return;
-                if(data.author == null) return;
+                if(data.apply == null) {
+                    this.context.showNotif(socket, "No apply commands provided!", "error")
+                    return;
+                }
+                if(data.revert == null) {
+                    this.context.showNotif(socket, "No revert commands provided!", "error")
+                    return
+                }
+                if(data.name == null) {
+                    this.context.showNotif(socket, "Name is required!", "error")
+                    return;
+                }
+                if(data.desc == null) {
+                    this.context.showNotif(socket, "Description is required!", "error")
+                    return;
+                }
+                if(data.author == null) {
+                    this.context.showNotif(socket, "Author name is required!", "error")
+                    return;
+                }
         
                 let obfMacro = {
                     name: data.name,
@@ -144,6 +175,8 @@ class MacrosModule {
         
                 this.macros.push(obfMacro);
                 this.save();
+
+                this.context.showNotif(socket, `Successfully created "${obfMacro.name}"!`, "success")
         
                 socket.emit("force_reload")
             })

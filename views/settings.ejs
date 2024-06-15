@@ -34,10 +34,13 @@
                     <h3>Memory</h3>
                     <div>
                         <label for="xmsRange" class="form-label">(Xms) Minimum amount of RAM to use:</label>
-                        <input type="range" unit="MB" class="form-range" min="256" max="1024" value="512" id="xmsRange">
+                        <input type="range" unit="MB" class="form-range" min="256" max="1024" value="<%-Xms%>" id="xmsRange">
 
                         <label for="xmxRange" class="form-label">(Xmx) Maximum amount of RAM to use:</label>
-                        <input type="range" unit="MB" class="form-range" min="1024" max="16384" value="2048" id="xmxRange">
+                        <input type="range" unit="MB" class="form-range" min="1024" max="16384" value="<%-Xmx%>" id="xmxRange">
+                        <div class="d-flex" style="justify-content: flex-end;">
+                            <button id="set_memory" class="btn btn-success">Apply</button>
+                        </div>
                     </div>
                     <hr>
                 </div>
@@ -90,5 +93,12 @@
             let pass = $("#adminpass");
             socket.emit("change_admin_pass", pass.val());
         });
+
+        $("#set_memory").click(() => {
+            let Xmx = Number($("#xmxRange").val());
+            let Xms = Number($("#xmsRange").val());
+
+            socket.emit("set_memory", {Xms, Xmx})
+        })
     </script>
 </html>

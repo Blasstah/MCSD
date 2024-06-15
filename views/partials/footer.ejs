@@ -1,4 +1,46 @@
 <script>
+    var notyf = new Notyf();
+
+    socket.on("notification", (obj) => {
+        if(typeof(obj) == "string") {
+            notyf.success({
+                message: obj,
+                dismissible: true,
+                icon: `<i class="bi bi-info-circle"></i>`,
+                background: "orange",
+            });
+            return;
+        }
+
+        let message = obj.message;
+        let type = obj.type;
+
+        switch(type) {
+            case "success":
+                notyf.success({
+                    message,
+                    dismissible: true,
+                });
+                break;
+            case "error":
+                notyf.error({
+                    message,
+                    dismissible: true,
+                });
+                break;
+            default:
+                notyf.success({
+                    message,
+                    dismissible: true,
+                    icon: `<i class="bi bi-info-circle"></i>`,
+                    background: "orange",
+                });
+                break;
+        }
+    })
+</script>
+
+<script>
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
     const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 </script>

@@ -5,9 +5,12 @@
             
             <h4 class="mb-0">MCSM: "<%-data.motd %>"</h4>
         </div>
-        <button id="toggle_server" class="d-flex gap-2 btn btn-danger"> 
-            Start Server
-        </button>
+        <div class="d-flex align-items-center gap-3">
+            <p id="navbar_players_online" class="m-0"></p>
+            <button id="toggle_server" disabled class="d-flex gap-2 btn btn-secondary"> 
+                Retrieving info...
+            </button>
+        </div>
     </div>
 </nav>
 <div class="offcanvas offcanvas-start" tabindex="-1" id="menu" aria-labelledby="menuCanvasLabel">
@@ -36,19 +39,37 @@
             $(this).addClass("active");
     });
 
-    let lastToggleState = false;
+    const playersOnline = $("#navbar_players_online");
     socket.on("status_update", (status) => {
-        if(status.running) {
-            if(!lastToggleState) {
-                toggleButton.removeClass("btn-success");
-                toggleButton.addClass("btn-danger");
-                toggleButton.html(`<i class="bi bi-stop-circle"></i> Stop Server`)
-                lastToggleState = true;
-            }
-        }else if(lastToggleState) {
+        if(status.query && status.running) {
+            playersOnline.text(`Online: ${status.query.players.length}/${status.query.maxPlayers}`)
+        }else if(!status.query && status.running) {
+            playersOnline.html(`<span class="text-muted">No query info...</span>`)
+        }else {
+            playersOnline.html(`<span class="text-muted">Offline</span>`)
+        }
+        
+        if(status.running && !status.stopping) {
+            toggleButton.removeClass("btn-success");
+            toggleButton.removeClass("btn-warning");
+            toggleButton.addClass("btn-danger");
+            toggleButton.html(`<i class="bi bi-stop-circle"></i> Stop Server`)
+            toggleButton.attr("disabled", false)
+            lastToggleState = true;
+        }else if(status.stopping) {
+            toggleButton.removeClass("btn-success");
+            toggleButton.removeClass("btn-danfer");
+            toggleButton.addClass("btn-warning");
+            toggleButton.html(`<i class="bi bi-arrow-clockwise"></i> Stopping Server`)
+            toggleButton.attr("disabled", true)
+            lastToggleState = true;
+        }
+        else {
             toggleButton.removeClass("btn-danger");
+            toggleButton.removeClass("btn-warning");
             toggleButton.addClass("btn-success");
             toggleButton.html(`<i class="bi bi-play-circle"></i> Start Server`)
+            toggleButton.attr("disabled", false)
             lastToggleState = false;
         }
     })

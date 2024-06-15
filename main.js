@@ -16,6 +16,7 @@ class ServerDataContext {
             return path.join(__dirname, file)
         }
 
+        this.showNotif = ShowNotif;
         this.addEntryPoint = addEntryPoint;
         this.dir = __dirname;
     }
@@ -32,7 +33,6 @@ const properties = require("properties-parser");
 const express = require('express');
 const app = express();
 const bodyParser = require("body-parser")
-const fileupload = require("express-fileupload");
 
 const http = require('http');
 const server = http.createServer(app);
@@ -70,12 +70,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
   extended: true
 }));
-
-app.use(fileupload({
-    useTempFiles: true,
-    tempFileDir: "/tmp/",
-    debug: true,
-}))
 
 app.use(express.static("client"))
 app.use(express.static("node_modules/socket.io/client-dist"))
@@ -126,6 +120,8 @@ app.get('/settings', function(req, res) {
             var props = new MCServerProperties();
             data.raw = props.raw;
             data.data = props.data;
+            data.Xmx = global_settings.Xmx;
+            data.Xms = global_settings.Xms;
             res.render("settings", data);
         }
         else res.render("setup")
@@ -156,6 +152,7 @@ function addEntryPoint(entry, callback) {
 const MODULES = [
     require("./modules/macros")(new ServerDataContext()), // Macros Module
     require("./modules/addons")(new ServerDataContext()), // Addons Module
+    require("./modules/scheduler")(new ServerDataContext()), // Scheduler Module
 ]
 /* End of Modules */
 
@@ -226,7 +223,7 @@ function registerSecureSocket(socket) {
     socket.on("command", (cmd) => {
         if(typeof cmd != "string") return;
         if(!currentServer) {
-            PrintToConsole(`<span class="text-muted">Server is not running. You first need to run it using the button in top right corner.</span>`);
+            ShowNotif(socket, "Server is not running, so you can't interact with it.")
             return;
         }
 
@@ -259,10 +256,29 @@ function registerSecureSocket(socket) {
         saveSettings();
 
         socket.emit("force_reload")
+        ShowNotif(socket, "Admin password changed!", "success")
+    })
+
+    socket.on("set_memory", (obj) => {
+        if(!obj.Xmx) return;
+        if(!obj.Xms) return;
+        
+        if(typeof(obj.Xmx) != "number") return;
+        if(typeof(obj.Xms) != "number") return;
+
+        global_settings.Xms = obj.Xms;
+        global_settings.Xmx = obj.Xmx;
+        saveSettings();
+
+        ShowNotif(socket, "Memory settings changed!", "success")
     })
 
     socket.on("toggle_server", () => {
-        toggleServer();
+        if(!currentServer) {
+            ShowNotif(socket, "Server started!", "success")
+        }
+
+        toggleServer(socket);
     })
 
     socket.on("logout", () => {
@@ -300,6 +316,10 @@ function PrintToConsole(str) {
     SecureEmit("console", str);
 }
 
+function ShowNotif(socket, message, type) {
+    socket.emit("notification", {message, type})
+}
+
 /* Minecraft Server */
 let currentServer = null;
 
@@ -327,6 +347,7 @@ class MCServer {
         this.closeCallback = closeCallback;
 
         this.initialized = false;
+        this.stopping = false;
 
         Xms = Math.max(Xms, 1024);
 
@@ -353,8 +374,10 @@ class MCServer {
             currentServer = null;
         })
 
-        this.close = () => {
+        this.close = (stopCallback) => {
             this.sendCommand("stop");
+            if(stopCallback) this.closeCallback = stopCallback;
+            this.stopping = true;
         }
 
         this.sendCommand = (cmd) => {
@@ -409,11 +432,15 @@ function statusUpdate(cb) {
 
 function statusTimeout() {
     statusUpdate((perf) => {
-        setTimeout(statusTimeout, 2000)
+        if(!global_settings.statusDelay) 
+            global_settings.statusDelay = 1000;
+
+        setTimeout(statusTimeout, global_settings.statusDelay)
 
         let serverInfo = {};
         serverInfo.performance = perf;
         serverInfo.running = currentServer != null;
+        serverInfo.stopping = currentServer ? currentServer.stopping : false
 
         Gamedig.query({
             type: "minecraft",
@@ -436,9 +463,11 @@ function statusTimeout() {
 }
 statusTimeout();
 
-function toggleServer() {
+function toggleServer(socket) {
     if(currentServer) {
-        currentServer.close();
+        currentServer.close(function() {
+            ShowNotif(socket, "Server stopped!", "success");
+        });
         return;
     }
 

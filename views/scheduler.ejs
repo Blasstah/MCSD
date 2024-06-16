@@ -15,8 +15,8 @@
             <div class="d-flex justify-content-center gap-3">
                 <div class="d-flex flex-column" style="height: 80vh; width: 50%;">
                     <div class="d-flex gap-2">
-                        <button class="btn btn-success">Do Backup</button>
-                        <button class="btn btn-warning">Restart Server</button>
+                        <button id="do_backup" class="btn btn-success">Do Backup</button>
+                        <button id="restart_server" class="btn btn-warning">Restart Server</button>
                     </div>
                     <hr class="mt-2">
                     <div class="p-2" style="overflow: auto;">
@@ -96,6 +96,12 @@
     </body>
 
     <script>
+        $("#do_backup").click(() => {
+            socket.emit("do_backup")
+        });
 
+        $("#restart_server").click(() => {
+            socket.emit("restart_server")
+        });
     </script>
 </html>

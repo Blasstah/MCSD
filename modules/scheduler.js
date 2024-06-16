@@ -7,7 +7,7 @@ class SchedulerModule {
         this.context = context;
 
         const def = {
-            running: true,
+            running: false,
             backup: ["world", "world_the_nether", "world_the_end", "logs"],
             backups_stored: 6,
             interval: 15000,
@@ -107,7 +107,10 @@ class SchedulerModule {
         this.doBackup = (socket, name) => {
             if(!this.settings.backup || this.settings.backup.length <= 0) return;
 
-            if(socket) socket.emit("backup_started")
+            if(socket) {
+                socket.emit("backup_started")
+                this.showNotif(socket, "Starting server backup...")
+            }
 
             if(this.context.currentServer()) 
                 this.context.currentServer().serverMessage("Starting server backup...");
@@ -138,7 +141,10 @@ class SchedulerModule {
                 if(context.currentServer()) 
                     context.currentServer().serverMessage(message);
 
-                if(socket) socket.emit("backup_done", {filename, size})
+                if(socket) {
+                    socket.emit("backup_done", {filename, size})
+                    this.showNotif(socket, message, "success")
+                }
 
                 console.log(message);
             });
@@ -176,6 +182,17 @@ class SchedulerModule {
 
             res.render("scheduler", data);
         })
+
+        this.registerSecureSocket = (socket) => {
+            socket.on("do_backup", () => {
+                this.doBackup(socket);
+            })
+
+            socket.on("restart_server", () => {
+                if(this.context.currentServer())
+                    this.context.currentServer().restart(socket);
+            })
+        }
     }
 }
 

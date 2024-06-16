@@ -7,13 +7,14 @@ class SchedulerModule {
         this.context = context;
 
         const def = {
-            running: false,
+            running: true,
             backup: ["world", "world_the_nether", "world_the_end", "logs"],
-            maxStored: 6,
+            backups_stored: 6,
+            interval: 15000,
             schedules: [
                 {
                     type: "backup",
-                    time: "8:00",
+                    time: "08:00",
                     days: [0, 1, 2, 3, 4, 5, 6]
                 },
                 {
@@ -28,7 +29,7 @@ class SchedulerModule {
                 },
                 {
                     type: "backup",
-                    time: "2:50",
+                    time: "02:50",
                     days: [0, 1, 2, 3, 4, 5, 6]
                 },
                 {
@@ -52,6 +53,7 @@ class SchedulerModule {
         }
 
         this.settings = context.readConfig("scheduler", def);
+        context.saveConfig("scheduler", this.settings);
 
         this.isRunning = () => this.intervalId != null;
 
@@ -59,8 +61,8 @@ class SchedulerModule {
         this.scheduler = () => {
             let date = new Date();
 
-            let hour = date.getHours();
-            let minute = date.getMinutes();
+            let hour = 2;
+            let minute = 50;
             let day = date.getDay();
 
             let time = `${hour > 9 ? hour : `0${hour}`}:${minute > 9 ? minute : `0${minute}`}`;
@@ -85,7 +87,7 @@ class SchedulerModule {
         }
 
         this.startScheduler = () => {
-            this.intervalId = setInterval(this.scheduler, 5000)
+            this.intervalId = setInterval(this.scheduler, this.settings.interval)
         }
 
         this.stopScheduler = () => {
@@ -141,6 +143,7 @@ class SchedulerModule {
             archive.pipe(output);
 
             for(let el of this.settings.backup) {
+                if(el == "backups") continue;
                 if(!fs.existsSync(this.context.relativePath("mc_server/"+el))) continue;
                 if(!fs.lstatSync(this.context.relativePath("mc_server/"+el)).isDirectory()) continue;
 
@@ -157,10 +160,10 @@ class SchedulerModule {
             let dirs = [];
 
             fileScan.forEach(el => {
-                if(fs.lstatSync(context.relativePath("mc_server/"+el)).isDirectory()) dirs.push(el);
+                if(fs.lstatSync(context.relativePath("mc_server/"+el)).isDirectory() && !el.startsWith(".") && el != "backups") dirs.push(el);
             });
 
-            data.settings = this.settings;
+            data.scheduler = this.settings;
             data.scannedDirs = dirs;
             data.isRunning = this.isRunning();
 

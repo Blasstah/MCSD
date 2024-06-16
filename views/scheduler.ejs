@@ -12,8 +12,90 @@
         <main class="vw-100 vh-100 gap-3 p-2">
             <h3><i class="bi bi-stopwatch"></i>Scheduler</h3>
             <hr class="m-1 mb-3">
+            <div class="d-flex justify-content-center gap-3">
+                <div class="d-flex flex-column" style="height: 80vh; width: 50%;">
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-success">Do Backup</button>
+                        <button class="btn btn-warning">Restart Server</button>
+                    </div>
+                    <hr class="mt-2">
+                    <div class="p-2" style="overflow: auto;">
+                        <h3>Scheduler</h3>
+                        <div class="d-flex flex-column gap-2 w-100 p-2" style="background-color: #151515; border-radius: 10px;">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" <%- isRunning ? "checked" : "" %> type="checkbox">
+                                <label class="form-check-label">Enable scheduler</label>
+                            </div>
+                        </div>
+                        <h3 class="mt-2">Backups</h3>
+                        <div class="d-flex flex-column gap-2 w-100">
+                            <div class=" d-flex flex-column gap-2 p-2 w-100" style="background-color: #151515; border-radius: 10px;">
+                                <label for="backups_number">Max backups stored:</label>
+                                <input class="form-control w-25" type="number" min="2" max="100" value="<%- scheduler.backups_stored %>" id="backups_number">
+                                <label>Directories to include in backup:</label>
+                                <div style="overflow: auto; max-height: 300px;">
+                                <% for(let el of scannedDirs) { %>
+                                    <div class="form-check">
+                                        <input class="form-check-input" <%- scheduler.backup.indexOf(el) > -1 ? "checked" : "" %> type="checkbox">
+                                        <label class="form-check-label"><%-el %></label>
+                                    </div>
+                                <% } %>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex" style="justify-content: flex-end;">
+                            <button class="btn btn-success mt-2">Apply</button>
+                        </div>
+                    </div>
+                </div>
+                <style>
+                    .schedule {
+                        padding: 10px;   
+                        justify-content: space-between;
+                    }
+
+                    .schedule > div > i {
+                        font-size: 30px;
+                    }
+
+                    .schedule h4,p {
+                        margin: 0;
+                    }
+                </style>
+                <div class="d-flex flex-column" style="height: 80vh; width: 50%;">
+                    <h4 class="mt-2">Scheduled Actions:</h4>
+                    <div class=" d-flex flex-column-reverse gap-2 p-2 w-100 h-100 justify-content-end" style="background-color: #151515; border-radius: 10px; overflow: auto;">
+                        <% 
+                            let icons = {
+                                "backup": "bi-download",
+                                "message": "bi-chat-left-dots-fill",
+                                "command": "bi-terminal",
+                                "restart": "bi-arrow-clockwise"
+                            }
+                        %>
+                        <% for(let el of scheduler.schedules) { %>
+                        <div class="schedule card flex-row align-items-center" style="height: 50px">
+                            <div class="d-flex w-75 gap-2 align-items-center">
+                                <i class="bi <%-icons[el.type] %>"></i>
+                                <h4><%- el.type[0].toUpperCase() + el.type.substring(1, el.type.length) %></h4>
+                                <p class="text-muted"><%-(el.command && el.type == "command") ? el.command : el.message %></p>
+                            </div>
+                            <div class="w-25 d-flex gap-2 align-items-center justify-content-end">
+                                <p class="text-muted">(Whole week)</p>
+                                <h4><%- el.time %></h4>
+                                <button class="btn p-0 m-0 fs-5"><i class="bi bi-trash"></i></button>
+                            </div>
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
         </main>
 
         <%- include("partials/footer.ejs") %>
     </body>
+
+    <script>
+
+    </script>
 </html>

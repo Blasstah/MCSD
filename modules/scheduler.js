@@ -88,6 +88,9 @@ class SchedulerModule {
 
         this.startScheduler = () => {
             this.intervalId = setInterval(this.scheduler, this.settings.interval)
+            
+            let time = `${hour > 9 ? hour : `0${hour}`}:${minute > 9 ? minute : `0${minute}`}`;
+            console.log(`Scheduler started at ${time}, day ${new Date().getDay()}`);
         }
 
         this.stopScheduler = () => {

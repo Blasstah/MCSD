@@ -7,9 +7,7 @@ class MacrosModule {
         this.isModule = true;
         this.context = context;
 
-        this.macros = [];
-        if(fs.existsSync(context.relativePath("macros.json"))) 
-            this.macros = JSON.parse(fs.readFileSync(context.relativePath("macros.json")))
+        this.macros =  context.readConfig("macros", []);
 
         this.doMacro = (macro) => {
             if(macro.apply == null) return;
@@ -49,7 +47,7 @@ class MacrosModule {
         }
 
         this.save = () => {
-            fs.writeFileSync(context.relativePath("macros.json"), JSON.stringify(this.macros, null, 4))
+            this.context.saveConfig("macros", this.macros);
         }
         
         this.registerSecureSocket = (socket) => {
@@ -86,10 +84,11 @@ class MacrosModule {
                     return;
                 }
         
+                let name = this.macros[index].name;
                 this.macros.splice(index, 1)
                 this.save();
 
-                this.context.showNotif(socket, `Successfully removed "${this.macros[index].name}"!`, "success")
+                this.context.showNotif(socket, `Successfully removed "${name}"!`, "success")
                 
                 socket.emit("force_reload")
             })

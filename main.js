@@ -16,6 +16,30 @@ class ServerDataContext {
             return path.join(__dirname, file)
         }
 
+        this.saveConfig = (name, data) => {
+            let json = JSON.stringify(data, null, 4);
+            fs.writeFileSync(`config/${name}.json`, json)
+
+            return true;
+        }
+
+        this.readConfig = (name, def) => {
+            if(!fs.existsSync(`config/${name}.json`)) {
+                return def;
+            }
+
+            try {
+                let json = fs.readFileSync(`config/${name}.json`, "utf-8");
+                let obj = JSON.parse(json);
+
+                return obj;
+            }catch {
+                return def;
+            }
+        }
+
+        this.toggleServer = toggleServer;
+
         this.showNotif = ShowNotif;
         this.addEntryPoint = addEntryPoint;
         this.dir = __dirname;
@@ -55,7 +79,7 @@ var ansiConvert = new AnsiConvert();
 
 /* Registration */
 
-let global_settings = { password: "admin", Xms: 512, Xmx: 2048 };
+let global_settings = { password: "admin", Xms: 512, Xmx: 2048, webPort: 3000 };
 if(fs.existsSync(path.join(__dirname, "settings.json"))) 
     global_settings = JSON.parse(fs.readFileSync(path.join(__dirname, "settings.json")))
 
@@ -369,15 +393,26 @@ class MCServer {
         })
 
         this.process.on("exit", () => {
-            if(this.closeCallback) this.closeCallback();
-
             currentServer = null;
+            if(this.closeCallback) this.closeCallback();
         })
 
         this.close = (stopCallback) => {
             this.sendCommand("stop");
             if(stopCallback) this.closeCallback = stopCallback;
             this.stopping = true;
+        }
+
+        this.restart = (socket) => {
+            if(socket)
+                ShowNotif(socket, "Restarting server...");
+
+            this.close(() => {
+                toggleServer();
+
+                if(socket) 
+                    ShowNotif(socket, "Server restarted!", "success");
+            });
         }
 
         this.sendCommand = (cmd) => {
@@ -466,7 +501,7 @@ statusTimeout();
 function toggleServer(socket) {
     if(currentServer) {
         currentServer.close(function() {
-            ShowNotif(socket, "Server stopped!", "success");
+            if(socket) ShowNotif(socket, "Server stopped!", "success");
         });
         return;
     }
@@ -477,7 +512,9 @@ function toggleServer(socket) {
 }
 
 /* Run HTTP Server */
+let port = global_settings.webPort ? global_settings.webPort : 3000;
+server.listen(port, () => {
+    if(global_settings.webPort)
 
-server.listen(3000, () => {
-    console.log('listening on *:3000');
+    console.log(`listening on *:${port}`);
 });

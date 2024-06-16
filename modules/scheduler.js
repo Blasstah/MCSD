@@ -7,31 +7,11 @@ class SchedulerModule {
         this.context = context;
 
         const def = {
-            running: false,
+            running: true,
             backup: ["world", "world_the_nether", "world_the_end", "logs"],
             backups_stored: 6,
             interval: 15000,
             schedules: [
-                {
-                    type: "backup",
-                    time: "08:00",
-                    days: [0, 1, 2, 3, 4, 5, 6]
-                },
-                {
-                    type: "backup",
-                    time: "15:00",
-                    days: [0, 1, 2, 3, 4, 5, 6]
-                },
-                {
-                    type: "backup",
-                    time: "21:00",
-                    days: [0, 1, 2, 3, 4, 5, 6]
-                },
-                {
-                    type: "backup",
-                    time: "02:50",
-                    days: [0, 1, 2, 3, 4, 5, 6]
-                },
                 {
                     type: "message",
                     message: `Server will restart in 5 minutes! Keep yourself safe!`,

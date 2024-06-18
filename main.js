@@ -182,6 +182,9 @@ let MODULE_TABS = [
 
 ]
 function addMenuTab(bsIcon, title, href, priority) {
+    if(priority == null)
+        priority = MODULE_TABS.length;
+
     MODULE_TABS.push({
         icon: bsIcon,
         title,

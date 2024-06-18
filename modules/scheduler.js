@@ -35,6 +35,29 @@ class SchedulerModule {
         this.settings = context.readConfig("scheduler", def);
         context.saveConfig("scheduler", this.settings);
 
+        this.getScheduleTime = (schedule) => {
+            let split = schedule.time.split(":");
+            if(split.length < 1) return -1;
+
+            let h = Number(split[0]);
+            let min = Number(split[1]);
+
+            let time = h + min/60;
+
+            return time;
+        }
+
+        this.sort = () => {
+            let scheduler = this;
+            this.settings.schedules.sort((a, b) => {
+                let aTime = scheduler.getScheduleTime(a);
+                let bTime = scheduler.getScheduleTime(b);
+
+                return aTime - bTime;
+            });
+        }
+
+        this.sort();
         this.isRunning = () => this.intervalId != null;
 
         let lastHour = null;
@@ -81,69 +104,123 @@ class SchedulerModule {
             if(this.intervalId != null) {
                 clearInterval(this.intervalId);
                 this.intervalId = null;
+
+                console.log(`Scheduler disabled`);
             }
         }
 
+        this.saveBackup = (socket, name) => {
+            try {
+                console.log("Starting server backup...");
+
+                if(!fs.existsSync(this.context.relativePath("mc_server/backups"))) {
+                    fs.mkdirSync(this.context.relativePath("mc_server/backups"));
+                }
+    
+                let filename = new Date().toUTCString();
+                filename = filename.replaceAll(":", "-")
+                filename = filename.replaceAll(",", "")
+                filename = filename.replaceAll(" ", "_")
+    
+                if(typeof(name) == "string")
+                    filename = name;
+    
+                let output = fs.createWriteStream(this.context.relativePath(`mc_server/backups/${filename}.zip`))
+                var archive = archiver('zip', {zlib: {level: 9}});
+    
+                let context = this.context;
+                let scheduler = this;
+                output.on('close', function () {
+                    let size = archive.pointer() / 1024 / 1024;
+    
+                    let message = `Backup done! (${size.toFixed(0)}MB in size)`;
+    
+                    if(socket) {
+                        socket.emit("backup_done", {filename, size})
+                        context.showNotif(socket, message, "success")
+                    }
+    
+                    if(context.currentServer()) {
+                        context.currentServer().serverMessage(message);
+                        context.currentServer().sendCommand("save-on");
+                        context.currentServer().sendCommand("save-all");
+                    }
+
+                    scheduler.doingBackup = false;
+    
+                    console.log(message);
+                });
+    
+                archive.on('error', function(err){
+                    output.close();
+                    this.context.serverMessage("Could not save backup...")
+                    console.log(err);
+
+                    scheduler.doingBackup = false;
+                });
+    
+                archive.pipe(output);
+    
+                if(fs.existsSync(this.context.relativePath("mc_server/backups/tmp")))
+                    fs.rmSync(this.context.relativePath("mc_server/backups/tmp"), {recursive: true, force: true})
+                    
+                fs.mkdirSync(this.context.relativePath("mc_server/backups/tmp"));
+    
+                for(let el of this.settings.backup) {
+                    if(el == "backups") continue;
+                    if(!fs.existsSync(this.context.relativePath("mc_server/"+el))) continue;
+                    if(!fs.lstatSync(this.context.relativePath("mc_server/"+el)).isDirectory()) continue;
+    
+                    if(!fs.existsSync(this.context.relativePath("mc_server/backups/tmp/"+el)))
+                        fs.mkdirSync(this.context.relativePath("mc_server/backups/tmp/"+el));
+    
+                    let data = fs.readdirSync(this.context.relativePath("mc_server/"+el))
+                    data.forEach((file) => {
+                        if(file == "session.lock") return;
+    
+                        fs.cpSync(this.context.relativePath("mc_server/"+el+"/"+file), this.context.relativePath("mc_server/backups/tmp/"+el+"/"+file), {recursive: true});
+                    })
+    
+                    archive.directory(`mc_server/backups/tmp/${el}`, el);
+                }
+    
+                archive.finalize().then(() => {
+                    fs.rmSync(this.context.relativePath("mc_server/backups/tmp"), {recursive: true, force: true})
+                });
+            }catch(e) {
+                this.context.serverMessage("Could not save backup...")
+                console.log(e);
+                scheduler.doingBackup = false;
+            }
+        }
+
+        this.doingBackup = false;
         this.doBackup = (socket, name) => {
             if(!this.settings.backup || this.settings.backup.length <= 0) return;
+            if(this.doingBackup) {
+                if(socket) {
+                    this.context.showNotif(socket, "Backup is already in progress!", "error");
+                }
+                return;
+            }
+
+            this.doingBackup = true;
 
             if(socket) {
                 socket.emit("backup_started")
-                this.showNotif(socket, "Starting server backup...")
+                this.context.showNotif(socket, "Starting server backup...")
             }
 
-            if(this.context.currentServer()) 
+            let scheduler = this;
+            if(this.context.currentServer()) {
                 this.context.currentServer().serverMessage("Starting server backup...");
-
-            console.log("Starting server backup...");
-
-            if(!fs.existsSync(this.context.relativePath("mc_server/backups"))) {
-                fs.mkdirSync(this.context.relativePath("mc_server/backups"));
+                this.context.currentServer().sendCommand("save-all");
+                this.context.currentServer().sendCommand("save-off");
             }
 
-            let filename = new Date().toUTCString();
-            filename = filename.replaceAll(":", "-")
-            filename = filename.replaceAll(",", "")
-            filename = filename.replaceAll(" ", "_")
-
-            if(typeof(name) == "string")
-                filename = name;
-
-            let output = fs.createWriteStream(this.context.relativePath(`mc_server/backups/${filename}.zip`))
-            var archive = archiver('zip', {zlib: {level: 9}});
-
-            let context = this.context;
-            output.on('close', function () {
-                let size = archive.pointer() / 1024 / 1024;
-
-                let message = `Backup done! (${size.toFixed(0)}MB in size)`;
-
-                if(context.currentServer()) 
-                    context.currentServer().serverMessage(message);
-
-                if(socket) {
-                    socket.emit("backup_done", {filename, size})
-                    this.showNotif(socket, message, "success")
-                }
-
-                console.log(message);
-            });
-
-            archive.on('error', function(err){
-                throw err;
-            });
-
-            archive.pipe(output);
-
-            for(let el of this.settings.backup) {
-                if(el == "backups") continue;
-                if(!fs.existsSync(this.context.relativePath("mc_server/"+el))) continue;
-                if(!fs.lstatSync(this.context.relativePath("mc_server/"+el)).isDirectory()) continue;
-
-                archive.directory(`mc_server/${el}`, el);
-            }
-
-            archive.finalize();
+            setTimeout(() => {
+                scheduler.saveBackup(socket, name);
+            }, this.context.currentServer() ? 10000 : 10);
         }
 
         if(this.settings.running) this.startScheduler();
@@ -164,6 +241,8 @@ class SchedulerModule {
         })
 
         this.registerSecureSocket = (socket) => {
+
+            let context = this.context;
             socket.on("do_backup", () => {
                 this.doBackup(socket);
             })
@@ -171,6 +250,44 @@ class SchedulerModule {
             socket.on("restart_server", () => {
                 if(this.context.currentServer())
                     this.context.currentServer().restart(socket);
+            })
+
+            socket.on("scheduler_settings", (data) => {
+                try {
+                    let enabled = data.enabled;
+                    let backupsStored = data.backupsStored;
+                    let dirs = data.dirs;
+    
+                    if(!enabled && this.isRunning()) {
+                        this.stopScheduler();
+                    }else if(enabled && !this.isRunning()) {
+                        this.startScheduler();
+                    }
+    
+                    this.settings.backups_stored = Number(backupsStored);
+                    this.settings.running = enabled;
+    
+                    if(typeof(dirs) == "object")  {
+                        dirs.forEach(el => {
+                            if(typeof(el) != "string") throw "Bad dir data!";
+                        });
+    
+                        this.settings.backup = dirs;
+                    }
+    
+                    context.showNotif(socket, "Scheduler settings saved!", "success");
+
+                    context.saveConfig("scheduler", this.settings);
+                }catch {
+                    context.showNotif(socket, "Could not save scheduler settings...", "error");
+                }
+            })
+
+            socket.on("scheduler_new_action", (data) => {
+                let type = data.type;
+                let meta = data.meta;
+                let time = data.time;
+                let days = data.days;
             })
         }
     }

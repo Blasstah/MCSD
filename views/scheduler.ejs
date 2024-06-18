@@ -12,7 +12,7 @@
         <main class="vw-100 vh-100 gap-3 p-2">
             <h3><i class="bi bi-stopwatch"></i>Scheduler</h3>
             <hr class="m-1 mb-3">
-            <div class="d-flex justify-content-center gap-3">
+            <div class="d-flex flex-row-reverse justify-content-center gap-3">
                 <div class="d-flex flex-column" style="height: 80vh; width: 50%;">
                     <div class="d-flex gap-2">
                         <button id="do_backup" class="btn btn-success">Do Backup</button>
@@ -23,7 +23,7 @@
                         <h3>Scheduler</h3>
                         <div class="d-flex flex-column gap-2 w-100 p-2" style="background-color: #151515; border-radius: 10px;">
                             <div class="form-check form-switch">
-                                <input class="form-check-input" <%- isRunning ? "checked" : "" %> type="checkbox">
+                                <input id="scheduler_enabled" class="form-check-input" <%- isRunning ? "checked" : "" %> type="checkbox">
                                 <label class="form-check-label">Enable scheduler</label>
                             </div>
                         </div>
@@ -31,26 +31,23 @@
                         <div class="d-flex flex-column gap-2 w-100">
                             <div class=" d-flex flex-column gap-2 p-2 w-100" style="background-color: #151515; border-radius: 10px;">
                                 <label for="backups_number">Max backups stored:</label>
-                                <input class="form-control w-25" type="number" min="2" max="100" value="<%- scheduler.backups_stored %>" id="backups_number">
+                                <input id="scheduler_backups_stored" class="form-control w-25" type="number" min="2" max="100" value="<%- scheduler.backups_stored %>" id="backups_number">
                                 <label>Directories to include in backup:</label>
                                 <div style="overflow: auto; max-height: 300px;">
                                 <% for(let el of scannedDirs) { %>
                                     <div class="form-check">
-                                        <input class="form-check-input" <%- scheduler.backup.indexOf(el) > -1 ? "checked" : "" %> type="checkbox">
+                                        <input key="<%-el%>" class="scheduler_backup_dir form-check-input" <%- scheduler.backup.indexOf(el) > -1 ? "checked" : "" %> type="checkbox">
                                         <label class="form-check-label"><%-el %></label>
                                     </div>
                                 <% } %>
                                 </div>
                             </div>
                         </div>
-                        <div class="d-flex" style="justify-content: flex-end;">
-                            <button class="btn btn-success mt-2">Apply</button>
-                        </div>
                     </div>
                 </div>
                 <style>
                     .schedule {
-                        padding: 10px;   
+                        padding: 10px !important;   
                         justify-content: space-between;
                     }
 
@@ -87,6 +84,13 @@
                             </div>
                         </div>
                         <% } %>
+                        <button class="schedule btn d-flex flex-row btn-primary align-items-center" style="height: 50px;">
+                            <div class="d-flex w-75 gap-2 align-items-center">
+                                <i class="bi bi-plus-square"></i>
+                                <h4>Add action</h4>
+                                <p class="text-muted">Click here to add new scheduled action...</p>
+                            </div>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -96,6 +100,27 @@
     </body>
 
     <script>
+        function updateSettings() {
+            let enabled = $("#scheduler_enabled").is(":checked");
+            let backupsStored = Number($("#scheduler_backups_stored").val());
+            let dirs = [];
+
+            $(".scheduler_backup_dir").each((i, el) => {
+                let obj = $(el);
+                
+                if(obj.is(":checked"))
+                   dirs.push(obj.attr("key"));
+            })
+
+            let data = {
+                enabled,
+                backupsStored,
+                dirs
+            }
+
+            socket.emit("scheduler_settings", data)
+        }
+
         $("#do_backup").click(() => {
             socket.emit("do_backup")
         });
@@ -103,5 +128,17 @@
         $("#restart_server").click(() => {
             socket.emit("restart_server")
         });
+
+        $(".scheduler_backup_dir").click(() => {
+            updateSettings();
+        })
+
+        $("#scheduler_enabled").click(() => {
+            updateSettings();
+        })
+
+        $("#scheduler_backups_stored").change(() => {
+            updateSettings();
+        })
     </script>
 </html>

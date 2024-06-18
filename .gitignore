@@ -1,5 +1,6 @@
 # MCSM
 mc_server/
+config/
 settings.json
 
 # Logs

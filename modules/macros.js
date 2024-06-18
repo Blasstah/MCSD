@@ -7,7 +7,35 @@ class MacrosModule {
         this.isModule = true;
         this.context = context;
 
-        this.macros =  context.readConfig("macros", []);
+        const def = [
+            {
+                name: "Death Counter",
+                author: "Blasstah",
+                desc: "Adds a death counter to the Player List",
+                apply: [
+                    "scoreboard objectives add deathCounter deathCount \"Deaths\"",
+                    "scoreboard objectives setdisplay list deathCounter"
+                ],
+                revert: [
+                    "scoreboard objectives remove deathCounter"
+                ]
+            },
+            {
+                name: "Health Display",
+                author: "Blasstah",
+                desc: "Displays player's health beneath the nametag.",
+                apply: [
+                    "scoreboard objectives add healthDisplay health \"§c❤\"",
+                    "scoreboard objectives setdisplay below_name healthDisplay"
+                ],
+                revert: [
+                    "scoreboard objectives remove healthDisplay"
+                ]
+            }
+        ]
+
+        this.macros = context.readConfig("macros", def);
+        context.saveConfig("macros", this.macros)
 
         this.doMacro = (macro) => {
             if(macro.apply == null) return;

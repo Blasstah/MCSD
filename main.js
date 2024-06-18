@@ -79,6 +79,9 @@ var ansiConvert = new AnsiConvert();
 
 /* Registration */
 
+if(!fs.existsSync(path.join(__dirname, "config")))
+    fs.mkdirSync("config")
+
 let global_settings = { password: "admin", Xms: 512, Xmx: 2048, webPort: 3000 };
 if(fs.existsSync(path.join(__dirname, "settings.json"))) 
     global_settings = JSON.parse(fs.readFileSync(path.join(__dirname, "settings.json")))
@@ -369,6 +372,7 @@ class MCServer {
         }
 
         this.closeCallback = closeCallback;
+        this.outputCallbacks = []
 
         this.initialized = false;
         this.stopping = false;
@@ -384,12 +388,27 @@ class MCServer {
         this.data.players = [];
         
         this.process.stdout.setEncoding("utf8");
+
+        let server = this;
         this.process.stdout.on("data", function (data) 
         {  
             let ansi = ansiConvert.toHtml(data);
             ansi.replaceAll("\n", "<br>")
         
             PrintToConsole(ansi);
+
+            server.outputCallbacks.forEach(callback => {
+                if(callback != null || typeof(callback) != "function") {
+                    server.outputCallbacks.splice(server.outputCallbacks.indexOf(callback), 1);
+                    return;
+                }
+
+                let res = callback(data);
+                if(res) {
+                    server.outputCallbacks.splice(server.outputCallbacks.indexOf(callback), 1);
+                    return;
+                }
+            });
         })
 
         this.process.on("exit", () => {
@@ -413,6 +432,13 @@ class MCServer {
                 if(socket) 
                     ShowNotif(socket, "Server restarted!", "success");
             });
+        }
+
+        this.addOutputCallback = (callback) => {
+            if(callback == null) return;
+            if(typeof(callback) != "function") return;
+
+            this.outputCallbacks.push(callback)
         }
 
         this.sendCommand = (cmd) => {

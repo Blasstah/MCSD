@@ -194,7 +194,12 @@ function addMenuTab(bsIcon, title, href, priority) {
     })
 }
 
-let MODULES = []
+const MODULES = [
+    require("./modules/addons")(new ServerDataContext()), // Plugins / Addons
+    require("./modules/macros")(new ServerDataContext()), // Command Macros
+    require("./modules/scheduler")(new ServerDataContext()), // Scheduler
+]
+/*
 let detectedModules = fs.existsSync("modules") ? fs.readdirSync("modules") : [];
 detectedModules.forEach(module => { // Automatically detect modules and require them
     if(!module.endsWith(".js")) return;
@@ -202,6 +207,7 @@ detectedModules.forEach(module => { // Automatically detect modules and require 
 
     MODULES.push(require("./modules/"+module)(new ServerDataContext()));
 });
+*/
 /* End of Modules */
 
 /* Socket */

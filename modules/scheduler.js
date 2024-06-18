@@ -225,6 +225,8 @@ class SchedulerModule {
 
         if(this.settings.running) this.startScheduler();
 
+        context.addMenuTab("stopwatch", "Scheduler", "/scheduler", 3)
+
         context.addEntryPoint("/scheduler", (req, res, data) => {
             const fileScan = fs.readdirSync(context.relativePath("mc_server"));
             let dirs = [];

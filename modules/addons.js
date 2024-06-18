@@ -7,6 +7,8 @@ class AddonsModule {
         this.pluginsDir = context.relativePath("mc_server/plugins");
         this.modsDir = context.relativePath("mc_server/mods");
 
+        context.addMenuTab("plugin", "Plugins / Mods", "/addons", 1)
+
         context.addEntryPoint("/addons", (req, res, data) => {
             let hasPlugins = fs.existsSync(this.pluginsDir)
             let hasMods = fs.existsSync(this.modsDir)

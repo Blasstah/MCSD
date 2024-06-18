@@ -4,7 +4,6 @@ const { escape, unescape } = require("querystring");
 
 class MacrosModule {
     constructor(context) {
-        this.isModule = true;
         this.context = context;
 
         const def = [
@@ -208,6 +207,8 @@ class MacrosModule {
                 socket.emit("force_reload")
             })
         }
+
+        context.addMenuTab("terminal", "Command Macros", "/macros", 2)
 
         context.addEntryPoint("/macros", (req, res, data) => {
             data.macros = this.macros;

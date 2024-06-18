@@ -42,6 +42,7 @@ class ServerDataContext {
 
         this.showNotif = ShowNotif;
         this.addEntryPoint = addEntryPoint;
+        this.addMenuTab = addMenuTab;
         this.dir = __dirname;
     }
 }
@@ -113,6 +114,7 @@ function generateDashboardData() {
     var properties = new MCServerProperties();
     return {
         running: currentServer != null,
+        module_tabs: MODULE_TABS ? MODULE_TABS : [],
         data: {
             motd: ansiConvert.toHtml(properties.data.motd),
             query_enabled: properties.data["enable-query"] == "true",
@@ -176,11 +178,30 @@ function addEntryPoint(entry, callback) {
 }
 
 /* Modules */
-const MODULES = [
-    require("./modules/macros")(new ServerDataContext()), // Macros Module
-    require("./modules/addons")(new ServerDataContext()), // Addons Module
-    require("./modules/scheduler")(new ServerDataContext()), // Scheduler Module
+let MODULE_TABS = [
+
 ]
+function addMenuTab(bsIcon, title, href, priority) {
+    MODULE_TABS.push({
+        icon: bsIcon,
+        title,
+        href,
+        priority,
+    })
+
+    MODULE_TABS.sort((a, b) => {
+        return a.priority - b.priority;
+    })
+}
+
+let MODULES = []
+let detectedModules = fs.existsSync("modules") ? fs.readdirSync("modules") : [];
+detectedModules.forEach(module => { // Automatically detect modules and require them
+    if(!module.endsWith(".js")) return;
+    module = module.substring(0, module.length-3)
+
+    MODULES.push(require("./modules/"+module)(new ServerDataContext()));
+});
 /* End of Modules */
 
 /* Socket */

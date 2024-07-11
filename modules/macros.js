@@ -132,6 +132,20 @@ class MacrosModule {
         
                 socket.emit("macro_code", {code: base64, index})
             })
+
+            socket.on("macro_list", () => {
+                let codes = [];
+
+                this.macros.forEach(macro => {
+                    let json = JSON.stringify(macro);
+                    let base64 = btoa(escape(json));
+
+                    codes.push(base64);
+                });
+
+                this.context.showNotif(socket, `Successfully copied JSON for all of your macros! Now you can put it on pastebin!`, "success")
+                socket.emit("macro_list", JSON.stringify(codes, null, 4))
+            })
         
             socket.on("add_macro_code", (code) => {
                 if(typeof code != "string") return;

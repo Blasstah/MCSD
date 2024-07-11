@@ -59,17 +59,19 @@
                         margin: 0;
                     }
                 </style>
+                <% 
+                    let icons = {
+                        "backup": "bi-download",
+                        "message": "bi-chat-left-dots-fill",
+                        "command": "bi-terminal",
+                        "restart": "bi-arrow-clockwise"
+                    }
+                %>
                 <div class="d-flex flex-column" style="height: 80vh; width: 50%;">
                     <h4 class="mt-2">Scheduled Actions:</h4>
                     <div class=" d-flex flex-column-reverse gap-2 p-2 w-100 h-100 justify-content-end" style="background-color: #151515; border-radius: 10px; overflow: auto;">
-                        <% 
-                            let icons = {
-                                "backup": "bi-download",
-                                "message": "bi-chat-left-dots-fill",
-                                "command": "bi-terminal",
-                                "restart": "bi-arrow-clockwise"
-                            }
-                        %>
+                        <% let weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]; %>
+                        <% let index = 0 %>
                         <% for(let el of scheduler.schedules) { %>
                         <div class="schedule card flex-row align-items-center" style="height: 50px">
                             <div class="d-flex w-75 gap-2 align-items-center">
@@ -77,14 +79,30 @@
                                 <h4><%- el.type[0].toUpperCase() + el.type.substring(1, el.type.length) %></h4>
                                 <p class="text-muted"><%-(el.command && el.type == "command") ? el.command : el.message %></p>
                             </div>
-                            <div class="w-25 d-flex gap-2 align-items-center justify-content-end">
-                                <p class="text-muted">(Whole week)</p>
+                            <div class="w-50 d-flex gap-2 align-items-center justify-content-end">
+                                <%
+                                    let week = [0, 1, 2, 3, 4, 5, 6] 
+                                    let dayText = "";
+                                    if(el.days.length == 7) {
+                                        dayText = "(Whole week)"
+                                    }else {
+                                        dayText += "( ";
+                                        let wkD = []
+                                        el.days.forEach(el => {
+                                            wkD.push(weekDays[el]);
+                                        });
+                                        dayText += wkD.join(", ")
+                                        dayText += " )";
+                                    }
+                                %>
+                                <p class="text-muted"><%- dayText %></p>
                                 <h4><%- el.time %></h4>
-                                <button class="btn p-0 m-0 fs-5"><i class="bi bi-trash"></i></button>
+                                <button key="<%- index %>" class="schedule_delete btn p-0 m-0 fs-5"><i class="bi bi-trash"></i></button>
                             </div>
                         </div>
+                        <% index++ %>
                         <% } %>
-                        <button class="schedule btn d-flex flex-row btn-primary align-items-center" style="height: 50px;">
+                        <button class="schedule btn d-flex flex-row btn-primary align-items-center" data-bs-toggle="modal" data-bs-target="#schedule_modal" style="height: 50px;">
                             <div class="d-flex w-75 gap-2 align-items-center">
                                 <i class="bi bi-plus-square"></i>
                                 <h4>Add action</h4>
@@ -95,6 +113,162 @@
                 </div>
             </div>
         </main>
+
+        <div id="schedule_modal" class="modal fade modal-md" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add scheduled action</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <style>
+                            .scheduleTypeHolder a {
+                                width: 48px;
+                                height: 48px;
+                            }
+
+                            .scheduleTypeHolder a > i {
+                                font-size: 24px;
+                            }
+                        </style>
+                        <h5><i class="bi bi-caret-down" style="margin-right: 5px;"></i>Action</h5>
+                        <hr>
+                        <div class="scheduleTypeHolder d-flex justify-content-center gap-2 pb-2">
+                            <a class="scheduleType btn btn-secondary" key="0" data-bs-toggle="tooltip" data-bs-placement="top" title="Message"><i class="bi bi-chat-left-dots-fill"></i></a>
+                            <a class="scheduleType btn btn-secondary" key="1" data-bs-toggle="tooltip" data-bs-placement="top" title="Command"><i class="bi bi-terminal"></i></a>
+                            <a class="scheduleType btn btn-secondary" key="2" data-bs-toggle="tooltip" data-bs-placement="top" title="Backup"><i class="bi bi-download"></i></a>
+                            <a class="scheduleType btn btn-secondary" key="3" data-bs-toggle="tooltip" data-bs-placement="top" title="Server Restart"><i class="bi bi-arrow-clockwise"></i></a>
+                        </div>
+                        <div class="schedule_modal_options mt-2">
+                            <h5><i class="bi bi-wrench" style="margin-right: 5px;"></i>Message Settings</h5>
+                            <hr>
+                            <input class="form-control" placeholder="Enter the message..." type="text" name="" id="">
+                        </div>
+                        <div class="mt-3">
+                            <h5><i class="bi bi-clock" style="margin-right: 5px;"></i>Time</h5>
+                            <hr>
+                            <input type="time" id="schedule-modal-time" class="form-control" value="00:00">
+
+                            <div style="margin: auto;" class="btn-group me-2 mt-2" role="group" aria-label="Days of the week">
+                                <button type="button" key="0" class="schedule-modal-day btn btn-secondary">Sun</button>
+                                <button type="button" key="1" class="schedule-modal-day btn btn-secondary">Mon</button>
+                                <button type="button" key="2" class="schedule-modal-day btn btn-secondary">Tue</button>
+                                <button type="button" key="3" class="schedule-modal-day btn btn-secondary">Wed</button>
+                                <button type="button" key="4" class="schedule-modal-day btn btn-secondary">Thu</button>
+                                <button type="button" key="5" class="schedule-modal-day btn btn-secondary">Fri</button>
+                                <button type="button" key="6" class="schedule-modal-day btn btn-secondary">Sat</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="schedule_add" type="button" class="btn btn-success">Add</button>
+                        <button type="button" class="btn btn-warning" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                    <script>
+                        let selectedType = 0;
+                        let types = []
+
+                        let days = [null, null, null, null, null, null, null]
+
+                        $("a.scheduleType").each((i, el) => {
+                            types[i] = $(el);
+                        })
+
+                        $("a.scheduleType").click(function() {
+                            let index = Number($(this).attr("key"));
+
+                            let oldType = selectedType;
+                            selectedType = index;
+
+                            schedule_refresh(oldType);
+                        })
+
+                        $("button.schedule-modal-day").click(function() {
+                            let obj = $(this);
+                            let num = Number(obj.attr("key"));
+                            if(days.includes(num)) {
+                                days[num] = null;
+                                schedule_refresh();
+                                return;
+                            }
+
+                            days[num] = num;
+                            schedule_refresh(selectedType);
+                        })
+
+                        $("#schedule_add").click(() => {
+                            schedule_add()
+                        })
+
+                        function schedule_add() {
+                            let type = selectedType;
+                            let meta = {};
+                            let time = $("#schedule-modal-time").val()
+
+                            $(".schedule_modal_options > input").each((i, el) => {
+                                let obj = $(el);
+
+                                meta[obj.attr("name")] = obj.val();
+                            })
+                            
+                            let payload = {type, meta, time, days}
+
+                            socket.emit("scheduler_new_action", payload);
+                        }
+
+                        function schedule_refresh(oldType) {
+                            for(let i = 0; i < types.length; i++) {
+                                let obj = types[i];
+
+                                obj.removeClass("btn-success");
+
+                                if(i == selectedType) {
+                                    obj.addClass("btn-success")
+                                }
+                            }
+
+                            $("button.schedule-modal-day").each((i, el) => {
+                                let obj = $(el);
+
+                                obj.removeClass("btn-success");
+                                if(days.includes(i)) {
+                                    obj.addClass("btn-success");
+                                }
+                            })
+
+                            if(oldType == selectedType) return;
+
+                            let options = $(".schedule_modal_options");
+                            options.empty();
+                            switch(selectedType) {
+                                case 0:
+                                    options.html(`
+                                        <h5><i class="bi bi-wrench" style="margin-right: 5px;"></i>Message Settings</h5>
+                                        <hr>
+                                        <input class="form-control" placeholder="Enter the message..." type="text" name="message">
+                                    `)
+                                    break;
+                                case 1:
+                                    options.html(`
+                                        <h5><i class="bi bi-wrench" style="margin-right: 5px;"></i>Command Settings</h5>
+                                        <hr>
+                                        <input class="form-control" style="resize: none; background-color: #111; font-family: monospace; color: white" placeholder="Enter command..." type="text" name="command">
+                                    `)
+                                    break;
+                                case 2:
+                                    break;
+                                case 3:
+                                    break;
+                            }
+                        }
+
+                        schedule_refresh();
+                    </script>
+                </div>
+            </div>
+        </div>
 
         <%- include("partials/footer.ejs") %>
     </body>
@@ -139,6 +313,13 @@
 
         $("#scheduler_backups_stored").change(() => {
             updateSettings();
+        })
+
+        $(".schedule_delete").click(function() {
+            let index = Number( $(this).attr("key"));
+            console.log(index);
+
+            socket.emit("scheduler_delete", index);
         })
     </script>
 </html>

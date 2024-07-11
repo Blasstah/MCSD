@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path")
 const archiver = require("archiver");
+const { isNumber } = require("chart.js/helpers");
 
 class SchedulerModule {
     constructor(context) {
@@ -252,6 +253,8 @@ class SchedulerModule {
             socket.on("restart_server", () => {
                 if(this.context.currentServer())
                     this.context.currentServer().restart(socket);
+                else
+                    this.context.showNotif(socket, "Server needs to be running in order to restart it!")
             })
 
             socket.on("scheduler_settings", (data) => {
@@ -285,11 +288,72 @@ class SchedulerModule {
                 }
             })
 
+            socket.on("scheduler_delete", (index) => {
+                if(index >= this.settings.schedules.length || index < 0) {
+                    context.showNotif(socket, "Invalid shedule ID!", "error")
+                    return;
+                }
+
+                this.settings.schedules.splice(index, 1)
+                this.sort()
+
+                context.saveConfig("scheduler", this.settings);
+
+                socket.emit("force_reload")
+            })
+
+            let types = ["message", "command", "backup", "restart"]
             socket.on("scheduler_new_action", (data) => {
                 let type = data.type;
                 let meta = data.meta;
-                let time = data.time;
-                let days = data.days;
+                let rawTime = data.time;
+                let rawDays = data.days;
+
+                let days = [];
+
+                let timeSplit = rawTime.split(':')
+                let hour = Number(timeSplit[0])
+                let minute = Number(timeSplit[1])
+
+                if(isNaN(hour) || isNaN(minute)) {
+                    context.showNotif(socket, "Bad time definition!", "error")
+                    return;
+                }
+
+                let time = `${hour > 9 ? hour : `0${hour}`}:${minute > 9 ? minute : `0${minute}`}`;
+
+                rawDays.forEach(el => {
+                    if(isNumber(el) && el > -1 && el < 7)
+                        days.push(el);
+                });
+
+                days.sort((a, b) => a > b)
+
+                if(days.length <= 0) {
+                    context.showNotif(socket, "No week days defined!", "error")
+                    return;
+                }
+
+                if(types[type] == undefined || types[type] == null) {
+                    context.showNotif(socket, "Type error! Couldn't find a type of specified ID!", "error")
+                    return;
+                }
+
+                let schedule = {
+                    type: types[type],
+                    time,
+                    days,
+                }
+
+                for(let x in meta)
+                    schedule[x] = meta[x];
+
+                this.settings.schedules.push(schedule);
+                this.sort()
+
+                context.saveConfig("scheduler", this.settings);
+
+                socket.emit("force_reload")
             })
         }
     }

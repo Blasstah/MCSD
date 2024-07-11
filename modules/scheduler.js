@@ -299,7 +299,7 @@ class SchedulerModule {
 
                 context.saveConfig("scheduler", this.settings);
 
-                socket.emit("force_reload")
+                socket.emit("force_reload", {message: "Successfully deleted schedule!", type: "success"})
             })
 
             let types = ["message", "command", "backup", "restart"]
@@ -353,7 +353,7 @@ class SchedulerModule {
 
                 context.saveConfig("scheduler", this.settings);
 
-                socket.emit("force_reload")
+                socket.emit("force_reload", {message: "Successfully added new schedule!", type: "success"})
             })
         }
     }

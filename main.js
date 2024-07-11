@@ -41,6 +41,7 @@ class ServerDataContext {
         this.toggleServer = toggleServer;
 
         this.showNotif = ShowNotif;
+        this.BroadcastNotif = BroadcastNotif;
         this.addEntryPoint = addEntryPoint;
         this.addMenuTab = addMenuTab;
         this.dir = __dirname;
@@ -375,6 +376,11 @@ function PrintToConsole(str) {
 
 function ShowNotif(socket, message, type) {
     socket.emit("notification", {message, type})
+}
+
+
+function BroadcastNotif(message, type) {
+    SecureEmit("notification", {message, type})
 }
 
 /* Minecraft Server */

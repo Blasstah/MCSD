@@ -11,6 +11,47 @@
         <%- include("partials/navigation.ejs"); %>
         <main class="vw-100 vh-100 gap-3 p-2">
             <div class="d-flex justify-content-center gap-2 h-100">
+                <style>
+                    .addon-list {
+                        gap: 5px;
+                        display: flex;
+                        flex-direction: column;
+                        max-height: 100%;
+                        overflow: auto;
+                        padding-right: 10px !important;
+                        padding-left: 10px !important;
+                    }
+
+                    .addon {
+                        padding: 5px;
+                        height: 72px;
+                        flex-direction: row;
+                        gap: 10px;
+                        justify-content: space-between;
+                    }
+
+                    .addon > div:first-child {
+                        display: flex;
+                        flex-direction: row;
+                        align-items: center;
+
+                        gap: 10px;
+                    }
+
+                    .addon img {
+                        width: 52px;
+                        height: 52px;
+                        object-fit: contain;
+                        border-radius: 10px;
+                        image-rendering: optimizeSpeed;
+
+                        box-shadow: 3px 3px rgba(0, 0, 0, 25%);
+                    }
+
+                    .addon i {
+                        font-size: 48px;
+                    }
+                </style>
                 <% if(addons.plugins) { %>
                 <div class="d-flex flex-column w-100">
                     <h3>Plugins</h3>
@@ -18,9 +59,28 @@
                 </div>
                 <% } %>
                 <% if(addons.mods) { %>
-                <div class="d-flex flex-column w-100">
+                <div class="d-flex flex-column w-100 vh-100 overflow-hidden" style="height: 90svh !important;">
                     <h3>Mods</h3>
                     <hr class="m-1 mb-3">
+                    <input type="text" class="form-control mb-2" id="mod-filter" placeholder="Filter by name or filename">
+                    <div class="mod-list addon-list p-1">
+                        <% for(let mod of addons.mods) { %>
+                            <div key="<%- mod.id %>" loader="<%- mod.platform %>" deps="<%- mod.dependencies.join(",") %>" searchvars="<%- mod.file %>, <%- mod.id %>, <%- mod.name %>" class="addon card">
+                                <div>
+                                    <% if(mod.icon) { %>
+                                        <img alt="Mod Icon" loading="lazy" src="data:image/jpeg;base64,<%-mod.icon %>">
+                                    <% } %>
+                                    <div class="d-flex flex-column h-100">
+                                        <h4><%- mod.name %></h4>
+                                        <h5 class="text-muted font-monospace"><%- mod.file %></h5>
+                                    </div>
+                                </div>
+                                <div>
+                                    
+                                </div>
+                            </div>
+                        <% } %>
+                    </div>
                 </div>
                 <% } %>
                 <% if(!addons.plugins && !addons.mods) { %>
@@ -35,4 +95,48 @@
 
         <%- include("partials/footer.ejs") %>
     </body>
+
+    <script>
+        let modFilter = $("#mod-filter");
+        let mods = $(".mod-list > .addon")
+
+        modFilter.on("keyup", function() {
+            let obj = $(this);
+            let val = obj.val();
+
+            let countDeps = false;
+            if(val.startsWith("@")) countDeps = true;
+            val = val.substring(1, val.length);
+
+            let deps = [];
+            let allowed = []
+
+            mods.each((i, el) => {
+                let cur = $(el);
+                if(cur.attr("searchvars").toLowerCase().includes(val.toLowerCase()) || val == "") {
+                    cur.removeClass("hidden")
+
+                    if(countDeps)
+                        for(let dep of cur.attr("deps").split(","))
+                            if(!deps.includes(dep)) deps.push(dep)
+
+                    allowed.push(cur.attr("key"))
+                }else {
+                    cur.addClass("hidden");
+                }
+            });
+
+            if(!countDeps) return;
+
+            console.log(deps)
+            mods.each((i, el) => {
+                let cur = $(el);
+                if(deps.includes(cur.attr("key"))) {
+                    cur.removeClass("hidden")
+                }else if(!allowed.includes(cur.attr("key"))) {
+                    cur.addClass("hidden");
+                }
+            });
+        })
+    </script>
 </html>

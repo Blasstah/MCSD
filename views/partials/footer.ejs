@@ -1,20 +1,7 @@
 <script>
     var notyf = new Notyf();
 
-    socket.on("notification", (obj) => {
-        if(typeof(obj) == "string") {
-            notyf.success({
-                message: obj,
-                dismissible: true,
-                icon: `<i class="bi bi-info-circle"></i>`,
-                background: "orange",
-            });
-            return;
-        }
-
-        let message = obj.message;
-        let type = obj.type;
-
+    function showNotification(message, type) {
         switch(type) {
             case "success":
                 notyf.success({
@@ -37,7 +24,34 @@
                 });
                 break;
         }
+    }
+
+    socket.on("notification", (obj) => {
+        if(typeof(obj) == "string") {
+            showNotification(obj, "success");
+            return;
+        }
+
+        let message = obj.message;
+        let type = obj.type;
+
+        showNotification(message, type)
     })
+
+    if(window.sessionStorage.getItem("reload_info")) {
+            try {
+                let obj = JSON.parse(window.sessionStorage.getItem("reload_info"));
+
+                if(obj.message && obj.type)
+                    showNotification(obj.message, obj.type);
+
+            }catch {
+
+            }
+        }
+
+    if(window.sessionStorage.getItem("reload_info"))
+         window.sessionStorage.removeItem("reload_info");
 </script>
 
 <script>

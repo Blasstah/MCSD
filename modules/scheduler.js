@@ -7,6 +7,8 @@ class SchedulerModule {
     constructor(context) {
         this.context = context;
 
+        context.addMenuTab("stopwatch", "Scheduler", "/scheduler", 3)
+
         const def = {
             running: true,
             backup: ["world", "world_the_nether", "world_the_end", "logs"],
@@ -225,8 +227,6 @@ class SchedulerModule {
         }
 
         if(this.settings.running) this.startScheduler();
-
-        context.addMenuTab("stopwatch", "Scheduler", "/scheduler", 3)
 
         context.addEntryPoint("/scheduler", (req, res, data) => {
             const fileScan = fs.readdirSync(context.relativePath("mc_server"));

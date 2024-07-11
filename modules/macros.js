@@ -6,6 +6,8 @@ class MacrosModule {
     constructor(context) {
         this.context = context;
 
+        context.addMenuTab("terminal", "Command Macros", "/macros", 2)
+
         const def = [
             {
                 name: "Death Counter",
@@ -221,8 +223,6 @@ class MacrosModule {
                 socket.emit("force_reload")
             })
         }
-
-        context.addMenuTab("terminal", "Command Macros", "/macros", 2)
 
         context.addEntryPoint("/macros", (req, res, data) => {
             data.macros = this.macros;

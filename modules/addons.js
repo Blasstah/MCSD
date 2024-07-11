@@ -49,9 +49,17 @@ class AddonsModule {
                     return;
                 }
 
+                let rawInfo = this.getAddonInfo(file.tempFilePath, true);
+                if(rawInfo.type != "mod") {
+                    context.io.to(req.session.id).emit("force_reload", {message: "Uploaded file was not a mod!", type: "error"})
+
+                    fs.rmSync(file.tempFilePath);
+                    return;
+                }
+
                 file.mv(path.join(this.modsDir, file.name)).then(() => {
                     let obj = this.getAddonInfo(path.join(this.modsDir, file.name));
-                    context.io.to(req.session.id).emit("force_reload", {message: `Successfully uploaded ${obj.name}!`, type: "success"})
+                    context.io.to(req.session.id).emit("force_reload", {message: `Successfully uploaded \"${obj.name}\" mod!`, type: "success"})
                 })
             }
 
@@ -263,7 +271,9 @@ class AddonsModule {
         }
 
         console.log("Rebuilding Addon (Plugins and/or Mods) cache. This may take a while...")
-        this.rebuildCache();
+
+        if(fs.existsSync(this.context.relativePath("mc_server")))
+            this.rebuildCache();
 
         context.addEntryPoint("/addons", (req, res, data) => {
             let hasPlugins = fs.existsSync(this.pluginsDir)

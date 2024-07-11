@@ -64,6 +64,17 @@
                     <hr class="m-1 mb-3">
                     <input type="text" class="form-control mb-2" id="mod-filter" placeholder="Filter by name or filename">
                     <div class="mod-list addon-list p-1">
+                        <div searchvars="" key="" deps="" class="addon card">
+                            <div>
+                                <form method="post" action="/upload/addons" enctype="multipart/form-data" class="d-flex flex-row gap-2 align-items-center">
+                                    <input type="file" class="form-control" id="mod_upload" name="mod">
+                                    <input type="submit" class="btn btn-primary h-50" value="Upload">
+                                </form>
+                            </div>
+                            <div>
+                                
+                            </div>
+                        </div>
                         <% for(let mod of addons.mods) { %>
                             <div key="<%- mod.id %>" loader="<%- mod.platform %>" deps="<%- mod.dependencies.join(",") %>" searchvars="<%- mod.file %>, <%- mod.id %>, <%- mod.name %>" class="addon card">
                                 <div>

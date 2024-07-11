@@ -268,6 +268,7 @@ function initialSetupRegister(socket) {
 
 function registerSecureSocket(socket) {
     if(!socket.request.session.logged) return;
+    socket.join(socket.request.session.id)
 
     /* INITIAL SETUP */
 

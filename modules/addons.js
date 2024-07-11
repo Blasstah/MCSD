@@ -1,4 +1,7 @@
 const fs = require("fs")
+const express = require("express");
+const fileUpload = require("express-fileupload");
+
 const path = require("path");
 const adm = require('adm-zip');
 const toml = require("toml");
@@ -14,9 +17,53 @@ class AddonsModule {
 
         context.addMenuTab("plugin", "Plugins / Mods", "/addons", 1)
 
+        // Upload Router
+        this.uploadRouter = express.Router();
+        this.uploadRouter.use((req, res, next) => {
+            if(!req.session.logged) return res.sendStatus(403);
+
+            next();
+        })
+
+        this.uploadRouter.use(fileUpload({
+            useTempFiles: true,
+            tempFileDir: context.relativePath("upload_tmp"),
+            debug: true,
+        }));
+
+        context.app.use("/upload", this.uploadRouter);
+        this.uploadRouter.post("/addons", (req, res) => {
+            if(req.files["mod"]) {
+                let file = req.files["mod"];
+                if(!file.name.endsWith(".jar")){
+                    context.io.to(req.session.id).emit("force_reload", {message: "Uploaded file was not a mod!", type: "error"})
+
+                    fs.rmSync(file.tempFilePath);
+                    return;
+                }
+
+                if(fs.existsSync(this.context.relativePath("mc_server/mods/"+file.name))) {
+                    context.io.to(req.session.id).emit("force_reload", {message: "Mod already exists!", type: "error"})
+
+                    fs.rmSync(file.tempFilePath);
+                    return;
+                }
+
+                file.mv(path.join(this.modsDir, file.name)).then(() => {
+                    let obj = this.getAddonInfo(path.join(this.modsDir, file.name));
+                    context.io.to(req.session.id).emit("force_reload", {message: `Successfully uploaded ${obj.name}!`, type: "success"})
+                })
+            }
+
+            for(let el of Object.keys(req.files)) {
+                if(fs.existsSync(req.files[el].tempFilePath))
+                    fs.rmSync(req.files[el].tempFilePath);
+            }
+        })
+
         this.cache = {};
 
-        this.getAddonInfo = (filePath) => {
+        this.getAddonInfo = (filePath, omitCache) => {
             let obj = {
                 file: path.basename(filePath),
                 id: "",
@@ -182,7 +229,7 @@ class AddonsModule {
                     }
                 }
     
-                this.cache[filePath] = obj;
+                if(!omitCache) this.cache[filePath] = obj;
                 return obj;
             }catch(e) {
                 return null;

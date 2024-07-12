@@ -12,6 +12,7 @@
     "express": "^4.18.2",
     "express-fileupload": "^1.5.0",
     "express-session": "^1.17.3",
+    "ftpd": "^0.2.16",
     "gamedig": "^4.3.0",
     "jquery": "^3.7.1",
     "pidusage": "^3.0.2",

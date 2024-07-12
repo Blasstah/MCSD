@@ -217,6 +217,7 @@ const MODULES = [
     require("./modules/addons")(new ServerDataContext()), // Plugins / Addons
     require("./modules/macros")(new ServerDataContext()), // Command Macros
     require("./modules/scheduler")(new ServerDataContext()), // Scheduler
+    require("./modules/ftpserver")(new ServerDataContext()), //FTP Server
 ]
 /*
 let detectedModules = fs.existsSync("modules") ? fs.readdirSync("modules") : [];
@@ -593,6 +594,7 @@ function toggleServer(socket) {
 let port = global_settings.webPort ? global_settings.webPort : 3000;
 server.listen(port, () => {
     if(global_settings.webPort)
+        console.log(`listening on *:${port}`);
 
-    console.log(`listening on *:${port}`);
+    // Flush old temp files
 });

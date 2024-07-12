@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>MCSM - Minecraft Server Management Software</title>
+
+        <%- include("partials/libs.ejs") %>
+    </head>
+    <body path="/ftpserver" class="d-flex flex-column vh-100">
+        <%- include("partials/navigation.ejs"); %>
+        <main class="gap-3 p-2">
+            <h3><i class="bi bi-hdd-stack"></i>FTP Server</h3>
+            <hr class="m-1 mb-3">
+            <div class="d-flex gap-3 w-100 justify-content-center">
+                <div class="w-50 p-3" style="height: 100%; background-color: #181818; border-radius: 10px;">
+                    <style>
+                        hr {
+                            margin-bottom: 10px !important;
+                        }
+
+                        .ftp-connection {
+                            border-bottom: solid 1px #555;
+                        }
+
+                        .ftp-connection::before {
+                            content: "•"
+                        }
+                    </style>
+                    <div class="form-check form-switch">
+                        <input id="scheduler_enabled" class="form-check-input" <%- ftp_server.enabled ? "checked" : "" %> type="checkbox">
+                        <label class="form-check-label">Enable FTP Server</label>
+                    </div>
+                    <h4 class="mt-3"><i class="bi bi-wrench" style="margin-right: 10px;"></i>Server Settings</h4>
+                    <hr>
+                    <div class="d-flex flex-column w-50">
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="ftp_host" value="<%- ftp_server.host %>" placeholder="ex. 127.0.0.1">
+                            <label for="ftp_host">Host Address</label>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="ftp_port" value="<%- ftp_server.port %>" placeholder="ex. 3001">
+                                <label for="ftp_port">Server Port</label>
+                            </div>
+                            <br>
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="ftp_pasv_start" value="<%- ftp_server.pasv_start %>" placeholder="ex. 1025">
+                                <label for="ftp_pasv_start">PASV Start</label>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <span>-</span>
+                            </div>
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="ftp_pasv_end" value="<%- ftp_server.pasv_end %>" placeholder="ex. 1050">
+                                <label for="ftp_pasv_end">PASV End</label>
+                            </div>
+                        </div>
+                    </div>
+                    <h4 class="mt-3"><i class="bi bi-person" style="margin-right: 10px;"></i>Login Credetianls</h4>
+                    <hr>
+                    <div class="d-flex flex-column w-50">
+                        <div class="d-flex gap-2">
+                            <div class="form-floating mb-2">
+                                <input type="text" class="form-control" id="ftp_username" value="<%- ftp_server.username %>" placeholder="def.: admin">
+                                <label for="ftp_username">Username</label>
+                            </div>
+                            <div class="form-floating mb-2">
+                                <input type="password" class="form-control" id="ftp_username" placeholder="def.: admin">
+                                <label for="ftp_username">Password</label>
+                            </div>
+                        </div>
+                        <button class="btn btn-warning" style="width: 200px;">Update Credentials</button>
+                    </div>
+                    <h4 class="mt-3"><i class="bi bi-wifi" style="margin-right: 10px;"></i>Current Connections: <%- connections.length %></h4>
+                    <hr>
+                    <div class="d-flex flex-column w-100 p-2 gap-2" style="background-color: #111; height: 280px;">
+                        <% for(let el of connections) { %>
+                        <div class="ftp-connection">
+                            <%- el %>
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+                <div class="w-25 h-100">
+                    <div class="card h-50 p-2">
+                        <h4><i class="bi bi-exclamation-octagon" style="margin-right: 10px;"></i>Info</h4>
+                        <hr>
+                        <p>Ideally, you would want to host FTP Server yourself, on your machine, thats why this module is disabled by default. So, if you got one, skip this one.</p>
+                        <p>However, this thing is ideal for people, who don't want to/don't know how to setup a FTP Server by themselves, so it does that automatically. People who just want to have easy access to server files, can do that.</p>
+                        <p>It's powered by <b>nodeftpd</b>, shoutout to collaborators, who have given us a way to host it through Node.JS.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <%- include("partials/footer.ejs") %>
+    </body>
+</html>

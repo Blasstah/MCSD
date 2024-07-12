@@ -168,11 +168,11 @@
             if(uploading) return;
             if(ev.originalEvent.dataTransfer.files.length <= 0) return;
 
-            let progressBar = $(ev.target).find(".progress-bar");
+            let progressBar = $("#mod_file_drop").find(".progress-bar");
             progressBar.parent().removeClass("hidden");
 
             let file = ev.originalEvent.dataTransfer.files[0];
-            $(ev.target).find(".file_text").text("Uploading "+file.name+"...");
+            $("#mod_file_drop").find(".file_text").text("Uploading "+file.name+"...");
 
             AJAX_sendFile(file, "mod", "/upload/addons", {
                 start: (ev) => {
@@ -191,11 +191,11 @@
             if(uploading) return;
             if(ev.originalEvent.dataTransfer.files.length <= 0) return;
 
-            let progressBar = $(ev.target).find(".progress-bar");
+            let progressBar = $("#plugin_file_drop").find(".progress-bar");
             progressBar.parent().removeClass("hidden");
 
             let file = ev.originalEvent.dataTransfer.files[0];
-            $(ev.target).find(".file_text").text("Uploading "+file.name+"...");
+            $("#plugin_file_drop").find(".file_text").text("Uploading "+file.name+"...");
 
             AJAX_sendFile(file, "plugin", "/upload/addons", {
                 start: (ev) => {

@@ -45,6 +45,7 @@ class ServerDataContext {
         this.addEntryPoint = addEntryPoint;
         this.addMenuTab = addMenuTab;
         this.dir = __dirname;
+        this.uploadRouter = uploadRouter;
     }
 }
 
@@ -53,6 +54,7 @@ const path = require("path");
 const fs = require("fs")
 const pidusage = require("pidusage");
 const Gamedig = require('gamedig');
+const fileUpload = require("express-fileupload");
 
 const properties = require("properties-parser");
 
@@ -99,6 +101,19 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
   extended: true
 }));
+
+const uploadRouter = express.Router();
+uploadRouter.use((req, res, next) => {
+    if(!req.session.logged) return res.sendStatus(403);
+
+    next();
+})
+uploadRouter.use(fileUpload({
+    useTempFiles: true,
+    tempFileDir: path.join(__dirname, "upload_tmp"),
+    debug: true,
+}));
+app.use("/upload", uploadRouter)
 
 app.use(express.static("client"))
 app.use(express.static("node_modules/socket.io/client-dist"))

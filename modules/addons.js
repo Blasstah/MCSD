@@ -17,28 +17,14 @@ class AddonsModule {
 
         context.addMenuTab("plugin", "Plugins / Mods", "/addons", 1)
 
-        // Upload Router
-        this.uploadRouter = express.Router();
-        this.uploadRouter.use((req, res, next) => {
-            if(!req.session.logged) return res.sendStatus(403);
-
-            next();
-        })
-
-        this.uploadRouter.use(fileUpload({
-            useTempFiles: true,
-            tempFileDir: context.relativePath("upload_tmp"),
-            debug: true,
-        }));
-
-        context.app.use("/upload", this.uploadRouter);
-        this.uploadRouter.post("/addons", (req, res) => {
+        context.uploadRouter.post("/addons", (req, res) => {
             if(req.files["mod"]) {
                 let file = req.files["mod"];
                 if(!file.name.endsWith(".jar")){
-                    context.io.to(req.session.id).emit("force_reload", {message: "Uploaded file was not a mod!", type: "error"})
+                    context.io.to(req.session.id).emit("force_reload", {message: "Uploaded file is not a mod!", type: "error"})
 
                     fs.rmSync(file.tempFilePath);
+                    res.sendStatus(400)
                     return;
                 }
 
@@ -46,14 +32,16 @@ class AddonsModule {
                     context.io.to(req.session.id).emit("force_reload", {message: "Mod already exists!", type: "error"})
 
                     fs.rmSync(file.tempFilePath);
+                    res.sendStatus(400)
                     return;
                 }
 
                 let rawInfo = this.getAddonInfo(file.tempFilePath, true);
                 if(rawInfo.type != "mod") {
-                    context.io.to(req.session.id).emit("force_reload", {message: "Uploaded file was not a mod!", type: "error"})
+                    context.io.to(req.session.id).emit("force_reload", {message: "Uploaded file is not a mod!", type: "error"})
 
                     fs.rmSync(file.tempFilePath);
+                    res.sendStatus(400)
                     return;
                 }
 
@@ -61,6 +49,41 @@ class AddonsModule {
                     let obj = this.getAddonInfo(path.join(this.modsDir, file.name));
                     context.io.to(req.session.id).emit("force_reload", {message: `Successfully uploaded \"${obj.name}\" mod!`, type: "success"})
                 })
+                res.sendStatus(200)
+            }
+
+            if(req.files["plugin"]) {
+                let file = req.files["plugin"];
+                if(!file.name.endsWith(".jar")){
+                    context.io.to(req.session.id).emit("force_reload", {message: "Uploaded file is not a plugin!", type: "error"})
+
+                    fs.rmSync(file.tempFilePath);
+                    res.sendStatus(400)
+                    return;
+                }
+
+                if(fs.existsSync(this.context.relativePath("mc_server/mods/"+file.name))) {
+                    context.io.to(req.session.id).emit("force_reload", {message: "Plugin already exists!", type: "error"})
+
+                    fs.rmSync(file.tempFilePath);
+                    res.sendStatus(400)
+                    return;
+                }
+
+                let rawInfo = this.getAddonInfo(file.tempFilePath, true);
+                if(rawInfo.type != "plugin") {
+                    context.io.to(req.session.id).emit("force_reload", {message: "Uploaded file is not a plugin!", type: "error"})
+
+                    fs.rmSync(file.tempFilePath);
+                    res.sendStatus(400)
+                    return;
+                }
+
+                file.mv(path.join(this.pluginsDir, file.name)).then(() => {
+                    let obj = this.getAddonInfo(path.join(this.pluginsDir, file.name));
+                    context.io.to(req.session.id).emit("force_reload", {message: `Successfully uploaded \"${obj.name}\" plugin!`, type: "success"})
+                })
+                res.sendStatus(200)
             }
 
             for(let el of Object.keys(req.files)) {
@@ -95,7 +118,6 @@ class AddonsModule {
             try {
                 const zip = new adm(filePath);
 
-                // Przeszukaj zawartość archiwum
                 const zipEntries = zip.getEntries();
                 for(let entry of zipEntries) {
                     // Handle Fabric
@@ -134,7 +156,8 @@ class AddonsModule {
                     //Handle Forge Older
                     if (entry.entryName === 'mcmod.info') {
                         // Odczytaj zawartość pliku
-                        const content = entry.getData().toString('utf8');
+                        let content = entry.getData().toString('utf8');
+                        content = content.replaceAll("\n", "");
 
                         obj.type = "mod";
                         obj.platform = "forge";
@@ -155,10 +178,7 @@ class AddonsModule {
                                 break;
                             }
         
-                            obj.mc_version = "",
-                            obj.version = data[0].version;
-        
-                            obj.id = data[0].modid;
+                            obj.id = data[0].modid ? data[0].modid : data[0].modId;
                             obj.name = data[0].name;
                             obj.desc = data[0].description;
                             obj.authors = data[0].authorList;
@@ -274,6 +294,28 @@ class AddonsModule {
 
         if(fs.existsSync(this.context.relativePath("mc_server")))
             this.rebuildCache();
+
+        this.registerSecureSocket = (socket) => {
+            socket.on("mod_delete", (file) => {
+                if(fs.existsSync(path.join(this.modsDir, file))) {
+                    fs.rmSync(path.join(this.modsDir, file))
+                    socket.emit("force_reload", {message: "Deleted " + file + "! (Mod)", type: "success"})
+                    return;
+                }
+
+                socket.emit("force_reload", {message: "Provided file does not exist!", type: "error"})
+            })
+
+            socket.on("plugin_delete", (file) => {
+                if(fs.existsSync(path.join(this.pluginsDir, file))) {
+                    fs.rmSync(path.join(this.pluginsDir, file))
+                    socket.emit("force_reload", {message: "Deleted " + file + "! (Plugin)", type: "success"})
+                    return;
+                }
+
+                socket.emit("force_reload", {message: "Provided file does not exist!", type: "error"})
+            })
+        }
 
         context.addEntryPoint("/addons", (req, res, data) => {
             let hasPlugins = fs.existsSync(this.pluginsDir)

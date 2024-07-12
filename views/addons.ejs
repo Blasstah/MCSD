@@ -6,10 +6,12 @@
         <title>MCSM - Minecraft Server Management Software</title>
 
         <%- include("partials/libs.ejs") %>
+
+        <script src="js/ajaxFileUpload.js"></script>
     </head>
     <body path="/addons" class="d-flex flex-column vh-100">
         <%- include("partials/navigation.ejs"); %>
-        <main class="vw-100 vh-100 gap-3 p-2">
+        <main class="gap-3 p-2">
             <div class="d-flex justify-content-center gap-2 h-100">
                 <style>
                     .addon-list {
@@ -51,32 +53,70 @@
                     .addon i {
                         font-size: 48px;
                     }
+
+                    .file_drop_zone {
+                        background-color: #111;
+                        padding: 10px;
+                        text-align: center;
+                        justify-content: center;
+                        display: flex;
+                        align-items: center;
+
+                        border: solid 1px #888
+                    }
                 </style>
                 <% if(addons.plugins) { %>
                 <div class="d-flex flex-column w-100">
                     <h3>Plugins</h3>
                     <hr class="m-1 mb-3">
+                    <input type="text" class="form-control mb-2" id="plugin-filter" placeholder="Filter plugins by name or filename">
+                    <div class="plugin-list addon-list p-1">
+                        <div searchvars="" key="" deps="" id="plugin_file_drop" class="file_drop_zone card">
+                            <div class="p-2 d-flex gap-4 w-100 align-items-center" styke="height: 100px !important">
+                                <span class="file_text text-muted font-monospace"><i class="bi bi-upload fs-6" style="margin-right: 10px;"></i>Drop plugin file here! (.jar)</span>
+                                <div class="progress w-50 hidden">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" style="width: 0%;" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <% for(let plugin of addons.plugins) { %>
+                            <div class="addon plugin card" key="<%- plugin.id %>" loader="<%- plugin.platform %>" deps="<%- plugin.dependencies.join(",") %>" searchvars="<%- plugin.file %>, <%- plugin.id %>, <%- plugin.name %>">
+                                <div>
+                                    <i class="bi bi-plugin"></i>
+                                    <div class="d-flex flex-column h-100">
+                                        <h4><%- plugin.name %></h4>
+                                        <h5 class="text-muted font-monospace"><%- plugin.file %></h5>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="d-flex flex-column">
+                                        <button file="<%- plugin.file %>" class="plugin_delete btn p-0 m-0 fs-5"><i class="bi bi-trash fs-5"></i></button>
+                                        <% if(plugin.desc != "") { %>
+                                        <a data-bs-toggle="tooltip" data-bs-placement="left" title="<%- plugin.desc %>" class="info p-0 m-0 fs-5"><i class="bi bi-info-circle fs-5"></i></a>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+                        <% } %>
+                    </div>
                 </div>
                 <% } %>
                 <% if(addons.mods) { %>
                 <div class="d-flex flex-column w-100 vh-100 overflow-hidden" style="height: 90svh !important;">
                     <h3>Mods</h3>
                     <hr class="m-1 mb-3">
-                    <input type="text" class="form-control mb-2" id="mod-filter" placeholder="Filter by name or filename">
+                    <input type="text" class="form-control mb-2" id="mod-filter" placeholder="Filter mods by name or filename">
                     <div class="mod-list addon-list p-1">
-                        <div searchvars="" key="" deps="" class="addon card">
-                            <div>
-                                <form method="post" action="/upload/addons" enctype="multipart/form-data" class="d-flex flex-row gap-2 align-items-center">
-                                    <input type="file" class="form-control" id="mod_upload" name="mod">
-                                    <input type="submit" class="btn btn-primary h-50" value="Upload">
-                                </form>
-                            </div>
-                            <div>
-
+                        <div searchvars="" key="" deps="" id="mod_file_drop" class="file_drop_zone card">
+                            <div class="p-2 d-flex gap-4 w-100 align-items-center" styke="height: 100px !important">
+                                <span class="file_text text-muted font-monospace"><i class="bi bi-upload fs-6" style="margin-right: 10px;"></i>Drop mod file here! (.jar)</span>
+                                <div class="progress w-50 hidden">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" style="width: 0%;" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
                             </div>
                         </div>
                         <% for(let mod of addons.mods) { %>
-                            <div key="<%- mod.id %>" loader="<%- mod.platform %>" deps="<%- mod.dependencies.join(",") %>" searchvars="<%- mod.file %>, <%- mod.id %>, <%- mod.name %>" class="addon card">
+                            <div class="addon mod card" key="<%- mod.id %>" loader="<%- mod.platform %>" deps="<%- mod.dependencies.join(",") %>" searchvars="<%- mod.file %>, <%- mod.id %>, <%- mod.name %>">
                                 <div>
                                     <% if(mod.icon) { %>
                                         <img alt="Mod Icon" loading="lazy" src="data:image/jpeg;base64,<%-mod.icon %>">
@@ -87,7 +127,12 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <button file="<%- mod.file %>" class="mod_delete btn p-0 m-0 fs-5"><i class="bi bi-trash fs-4"></i></button>
+                                    <div class="d-flex flex-column">
+                                        <button file="<%- mod.file %>" class="mod_delete btn p-0 m-0 fs-5"><i class="bi bi-trash fs-5"></i></button>
+                                        <% if(mod.desc != "") { %>
+                                        <a data-bs-toggle="tooltip" data-bs-placement="left" title="<%- mod.desc %>" class="info p-0 m-0 fs-5"><i class="bi bi-info-circle fs-5"></i></a>
+                                        <% } %>
+                                    </div>
                                 </div>
                             </div>
                         <% } %>
@@ -109,7 +154,60 @@
 
     <script>
         let modFilter = $("#mod-filter");
+        let pluginFilter = $("#plugin-filter");
         let mods = $(".mod-list > .addon")
+        let plugins = $(".plugin-list > .addon")
+
+        $(".file_drop_zone").on("dragover", (ev) => {
+            ev.originalEvent.preventDefault();
+        })
+
+        let uploading = false;
+        $("#mod_file_drop").on("drop", (ev) => {
+            ev.originalEvent.preventDefault();
+            if(uploading) return;
+            if(ev.originalEvent.dataTransfer.files.length <= 0) return;
+
+            let progressBar = $(ev.target).find(".progress-bar");
+            progressBar.parent().removeClass("hidden");
+
+            let file = ev.originalEvent.dataTransfer.files[0];
+            $(ev.target).find(".file_text").text("Uploading "+file.name+"...");
+
+            AJAX_sendFile(file, "mod", "/upload/addons", {
+                start: (ev) => {
+                    uploading = true;
+                },
+                progress: (ev) => {
+                    console.log((ev.loaded / ev.total)*100)
+                    progressBar.css("width", `${(ev.loaded / ev.total)*100}%`)
+                    progressBar.text(`${Math.floor((ev.loaded / ev.total)*100)}%`)
+                }
+            })
+        })
+
+        $("#plugin_file_drop").on("drop", (ev) => {
+            ev.originalEvent.preventDefault();
+            if(uploading) return;
+            if(ev.originalEvent.dataTransfer.files.length <= 0) return;
+
+            let progressBar = $(ev.target).find(".progress-bar");
+            progressBar.parent().removeClass("hidden");
+
+            let file = ev.originalEvent.dataTransfer.files[0];
+            $(ev.target).find(".file_text").text("Uploading "+file.name+"...");
+
+            AJAX_sendFile(file, "plugin", "/upload/addons", {
+                start: (ev) => {
+                    uploading = true;
+                },
+                progress: (ev) => {
+                    console.log((ev.loaded / ev.total)*100)
+                    progressBar.css("width", `${(ev.loaded / ev.total)*100}%`)
+                    progressBar.text(`${Math.floor((ev.loaded / ev.total)*100)}%`)
+                }
+            })
+        })
 
         modFilter.on("keyup", function() {
             let obj = $(this);
@@ -148,6 +246,53 @@
                     cur.addClass("hidden");
                 }
             });
+        })
+
+        pluginFilter.on("keyup", function() {
+            let obj = $(this);
+            let val = obj.val();
+
+            let countDeps = false;
+            if(val.startsWith("@")) countDeps = true;
+            val = val.substring(1, val.length);
+
+            let deps = [];
+            let allowed = []
+
+            plugins.each((i, el) => {
+                let cur = $(el);
+                if(cur.attr("searchvars").toLowerCase().includes(val.toLowerCase()) || val == "") {
+                    cur.removeClass("hidden")
+
+                    if(countDeps)
+                        for(let dep of cur.attr("deps").split(","))
+                            if(!deps.includes(dep)) deps.push(dep)
+
+                    allowed.push(cur.attr("key"))
+                }else {
+                    cur.addClass("hidden");
+                }
+            });
+
+            if(!countDeps) return;
+
+            console.log(deps)
+            plugins.each((i, el) => {
+                let cur = $(el);
+                if(deps.includes(cur.attr("key"))) {
+                    cur.removeClass("hidden")
+                }else if(!allowed.includes(cur.attr("key"))) {
+                    cur.addClass("hidden");
+                }
+            });
+        })
+
+        $(".mod_delete").click(function() {
+            socket.emit("mod_delete", $(this).attr("file"))
+        })
+
+        $(".plugin_delete").click(function() {
+            socket.emit("plugin_delete", $(this).attr("file"))
         })
     </script>
 </html>

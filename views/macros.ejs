@@ -82,8 +82,14 @@
             </div>
             <div class="modal-body">
                 <div class="d-flex w-100 gap-2 mb-1">
-                    <input type="text" class="form-control" id="new_macro_name" placeholder="Title">
-                    <input type="text" class="form-control" id="new_macro_author" placeholder="Author">    
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="new_macro_name" placeholder="Title">
+                        <label for="new_macro_name">Title</label>
+                    </div>
+                    <div class="form-floating">
+                        <input type="text" class="form-control" id="new_macro_author" placeholder="Author">   
+                        <label for="new_macro_author">Author</label> 
+                    </div>
                 </div>
                 <textarea class="form-control" id="new_macro_desc" style="resize: none;" placeholder="Short description"></textarea>
                 <hr>

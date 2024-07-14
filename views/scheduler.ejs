@@ -30,8 +30,10 @@
                         <h3 class="mt-2">Backups</h3>
                         <div class="d-flex flex-column gap-2 w-100">
                             <div class=" d-flex flex-column gap-2 p-2 w-100" style="background-color: #151515; border-radius: 10px;">
-                                <label for="backups_number">Max backups stored:</label>
-                                <input id="scheduler_backups_stored" class="form-control w-25" type="number" min="2" max="100" value="<%- scheduler.backups_stored %>" id="backups_number">
+                                <div class="form-floating">
+                                    <input id="backups_number" class="form-control w-25" type="number" min="2" max="100" value="<%- scheduler.backups_stored %>">
+                                    <label for="backups_number">Max backups stored:</label>
+                                </div>
                                 <label>Directories to include in backup:</label>
                                 <div style="overflow: auto; max-height: 300px;">
                                 <% for(let el of scannedDirs) { %>
@@ -276,7 +278,7 @@
     <script>
         function updateSettings() {
             let enabled = $("#scheduler_enabled").is(":checked");
-            let backupsStored = Number($("#scheduler_backups_stored").val());
+            let backupsStored = Number($("#backups_number").val());
             let dirs = [];
 
             $(".scheduler_backup_dir").each((i, el) => {
@@ -311,7 +313,7 @@
             updateSettings();
         })
 
-        $("#scheduler_backups_stored").change(() => {
+        $("#backups_number").change(() => {
             updateSettings();
         })
 

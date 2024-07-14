@@ -1,8 +1,7 @@
 # MCSM - Minecraft Server Manager
-<center>
+<p align="center">
     <a href="https://choosealicense.com/licenses/mit"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License" /></a>
-</center>
-test
+</p>
 
 ## What's that?
 It's a piece of software made with Node.JS that I made, because I wanted to have a simple way of managing **Minecraft SMP Sessions** with my friends. With that in mind I've started to make a dashboard, with features I considered handy.

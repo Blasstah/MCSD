@@ -1,4 +1,5 @@
 <h1 align="center">MCSM - Minecraft Server Manager</h1>
+<img src="https://i.ibb.co/vjfGSwM/banner.png" />
 <p align="center">
     <a href="https://choosealicense.com/licenses/mit"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License" /></a>
 </p>

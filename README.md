@@ -3,7 +3,6 @@
     <a href="https://choosealicense.com/licenses/mit"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License" /></a>
     <a href="https://github.com/Blasstah/MCSM"><img src="https://img.shields.io/github/stars/Blasstah/MCSM" alt="MIT License" /></a>
     <a href="https://github.com/Blasstah/MCSM"><img src="https://img.shields.io/github/repo-size/Blasstah/MCSM" alt="MIT License" /></a>
-    <a href="https://github.com/Blasstah/MCSM"><img src="https://img.shields.io/github/badge/tested_with-1.7.10 > newest-blue" alt="MIT License" /></a>
 </p>
 
 ## What's that?

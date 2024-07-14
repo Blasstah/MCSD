@@ -1,5 +1,5 @@
 # MCSM - Minecraft Server Manager
-<center>[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)'
+<center>[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 </center>
 
 ## What's that?

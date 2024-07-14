@@ -1,7 +1,9 @@
+<img src="https://i.ibb.co/vjfGSwM/banner.png" />
 <p align="center">
     <a href="https://choosealicense.com/licenses/mit"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License" /></a>
+    <a href="https://github.com/Blasstah/MCSM"><img src="https://img.shields.io/github/stars/Blasstah/MCSM" alt="MIT License" /></a>
+    <a href="https://github.com/Blasstah/MCSM"><img src="https://img.shields.io/github/repo-size/Blasstah/MCSM" alt="MIT License" /></a>
 </p>
-<img src="https://i.ibb.co/vjfGSwM/banner.png" />
 
 ## What's that?
 You can think of it as a set of **various tools to more easily manage a Minecraft Server**. This tool is mainly targeted for people, **who want to quickly setup a server and play with some friends**, and not big server providers.

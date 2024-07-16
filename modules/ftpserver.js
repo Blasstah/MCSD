@@ -45,17 +45,8 @@ class FTPServerModule {
                 pasvPortRangeEnd: this.settings.pasv_end,
                 tlsOptions: null,
             }
-
+            
             this.server = new ftpd.FtpServer(this.settings.host, ftpSettings)
-
-            if(fs.existsSync(this.context.relativePath("FTP_KEY.pem"))) {
-                options.tls = {}
-                options.tls.key = fs.readFileSync(this.context.relativePath("FTP_KEY.pem"))
-            }
-
-            if(fs.existsSync(this.context.relativePath("FTP_CERT.pem")) && options.tls) {
-                options.tls.cert = fs.readFileSync(this.context.relativePath("FTP_CERT.pem"))
-            }
     
             this.server.on("error", (err) => {
                 console.log(err);

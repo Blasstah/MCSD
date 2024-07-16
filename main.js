@@ -86,6 +86,10 @@ class ServerDataContext {
         this.addMenuTab = addMenuTab;
         this.dir = __dirname;
         this.uploadRouter = uploadRouter;
+        
+        this.addCommand = (alias, func) => {
+            return CONSOLE_MODULE.addCommand(alias, func);
+        }
     }
 }
 
@@ -266,8 +270,10 @@ function addMenuTab(bsIcon, title, href, priority) {
     })
 }
 
+const CONSOLE_MODULE = require("./modules/console")(new ServerDataContext());
+
 const MODULES = [
-    require("./modules/console")(new ServerDataContext()),
+    CONSOLE_MODULE, // Console Module
     require("./modules/addons")(new ServerDataContext()), // Plugins / Addons
     require("./modules/macros")(new ServerDataContext()), // Command Macros
     require("./modules/scheduler")(new ServerDataContext()), // Scheduler

@@ -36,5 +36,6 @@ Keep in mind that the software is in early stages of development and more things
 ## Planned
 - Optional Discord Integration (Sending commands via Discord Bot, forwarding messages, and etc.)
 - Visual changes to most of the menus in the app.
+- Terminal Mode - Some sort of interactine with the app by stdin and stdout
 
 ## Some screenshots

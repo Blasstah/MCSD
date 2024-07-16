@@ -25,6 +25,7 @@
                             border-bottom: solid 1px #555;
                             display: flex;
                             justify-content: space-between;
+                            opacity: 80%;
                         }
 
                         .ftp-connection.active {
@@ -33,6 +34,7 @@
                             display: flex;
                             justify-content: space-between;
                             font-weight: 600;
+                            opacity: 100%;
                         }
                     </style>
                     <div class="form-check form-switch">
@@ -87,7 +89,7 @@
                         <input type="text" class="form-control" id="ftp_whitelist_address" placeholder="IP Address...">
                         <button class="btn btn-success" type="button" id="ftp_whitelist_add">Add</button>
                     </div>
-                    <div class="d-flex flex-column w-100 p-2 gap-2" style="height: 220px; background-color: #111; overflow-y: auto;">
+                    <div class="ftp-whitelist d-flex flex-column w-100 p-2 gap-2" style="height: 220px; background-color: #111; overflow-y: auto;">
                         <% 
                             let locals = [
                                 "::1",
@@ -166,5 +168,17 @@
             let address = $("#ftp_whitelist_address").val();
             socket.emit("ftp_whitelist_add", {ip: address})
         })
+
+        /* Sort FTP by active */
+        let objs = []
+
+        $(".ftp-whitelist").children().each((i, el) => {
+            let obj = $(el);
+            objs.push(obj);
+        })
+
+        objs = objs.sort((a, b) => a.hasClass("active") ? -1 : -0)
+        for(let el of objs)
+            $(".ftp-whitelist").append(el);
     </script>
 </html>

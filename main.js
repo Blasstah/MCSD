@@ -56,6 +56,7 @@ const pidusage = require("pidusage");
 const Gamedig = require('gamedig');
 const fileUpload = require("express-fileupload");
 const crypto = require("crypto");
+const readline = require("readline");
 
 const properties = require("properties-parser");
 
@@ -611,3 +612,20 @@ server.listen(port, () => {
 
     // Flush old temp files
 });
+
+const rd = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+})
+
+/* TO DO: Command-Line input - probably as separate module
+function commandHandler() {
+    rd.question("[MCSM] ", command => {
+        // Handle Command
+
+        commandHandler();
+    })
+}
+
+commandHandler();
+*/

@@ -131,9 +131,6 @@ class AddonsModule {
 
                         try {
                             const data = destr(content)
-
-                            if(!data.id)
-                                console.log(data)
         
                             obj.version = data.version;
                             obj.mc_version = "",
@@ -148,7 +145,7 @@ class AddonsModule {
 
                             iconName = data.icon;
                         }catch(e) {
-                           console.log(e)
+                           this.context.log(e)
                         }
                         break;
                     }
@@ -290,7 +287,7 @@ class AddonsModule {
             }
         }
 
-        console.log("Rebuilding Addon (Plugins and/or Mods) cache. This may take a while...")
+        this.context.log("Rebuilding Addon (Plugins and/or Mods) cache. This may take a while...")
 
         if(fs.existsSync(this.context.relativePath("mc_server")))
             this.rebuildCache();

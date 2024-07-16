@@ -77,7 +77,7 @@ class SchedulerModule {
 
             this.settings.schedules.forEach(el => {
                 if(el.time == time && el.days.indexOf(day) > -1) {
-                    console.log(`[${time}] Running scheduled task "${el.type}".`)
+                    this.context.log(`[${time}] Running scheduled task "${el.type}".`)
 
                     if(el.type == "backup") this.doBackup();
                     else if(el.type == "restart") {
@@ -100,7 +100,7 @@ class SchedulerModule {
             let minute = date.getMinutes();
             let day = date.getDay();
             let time = `${hour > 9 ? hour : `0${hour}`}:${minute > 9 ? minute : `0${minute}`}`;
-            console.log(`Scheduler started at ${time}, day ${day}`);
+            this.context.log(`Scheduler started at ${time}, day ${day}`);
         }
 
         this.stopScheduler = () => {
@@ -108,13 +108,13 @@ class SchedulerModule {
                 clearInterval(this.intervalId);
                 this.intervalId = null;
 
-                console.log(`Scheduler disabled`);
+                this.context.log(`Scheduler disabled`);
             }
         }
 
         this.saveBackup = (socket, name) => {
             try {
-                console.log("Starting server backup...");
+                this.context.log("Starting server backup...");
 
                 if(!fs.existsSync(this.context.relativePath("mc_server/backups"))) {
                     fs.mkdirSync(this.context.relativePath("mc_server/backups"));
@@ -151,13 +151,13 @@ class SchedulerModule {
 
                     scheduler.doingBackup = false;
     
-                    console.log(message);
+                    this.context.log(message);
                 });
     
                 archive.on('error', function(err){
                     output.close();
                     this.context.serverMessage("Could not save backup...")
-                    console.log(err);
+                    this.context.log(err);
 
                     scheduler.doingBackup = false;
                 });
@@ -192,7 +192,7 @@ class SchedulerModule {
                 });
             }catch(e) {
                 this.context.serverMessage("Could not save backup...")
-                console.log(e);
+                this.context.log(e);
                 scheduler.doingBackup = false;
             }
         }

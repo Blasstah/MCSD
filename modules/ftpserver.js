@@ -54,7 +54,7 @@ class FTPServerModule {
             this.server = new ftpd.FtpServer(this.settings.host, ftpSettings)
     
             this.server.on("error", (err) => {
-                console.log(err);
+                this.context.log(err);
             })
     
             this.server.on("client:connected", (conn) => {
@@ -72,7 +72,7 @@ class FTPServerModule {
 
                 conn.on('command:user', (user, success, failure) => {
                     if(!this.settings.ip_whitelist.includes(conn.socket.remoteAddress)) {
-                        
+
                         failure();
                         return;
                     }

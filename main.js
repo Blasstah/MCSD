@@ -1,3 +1,30 @@
+/* Logging */
+let logs = [];
+let logHandlers = [];
+
+function onLog(func) {
+    if(typeof(func) != "function") return false;
+    logHandlers.push(func);
+    
+    return true;
+}
+
+function log(obj) {
+    if(!obj.toString) return false;
+
+    let message = obj.toString();
+    logs.push(message)
+
+    logHandlers.forEach(func => {
+        func(message)
+    });
+    return true;
+}
+
+function getLogs() {
+    return [...logs];
+}
+
 /* Server Data Context */
 class ServerDataContext {
     constructor() {
@@ -38,6 +65,10 @@ class ServerDataContext {
             }
         }
 
+        this.log = log;
+        this.getLogs = getLogs;
+        this.onLog = onLog;
+
         this.toggleServer = toggleServer;
 
         this.showNotif = ShowNotif;
@@ -56,7 +87,6 @@ const pidusage = require("pidusage");
 const Gamedig = require('gamedig');
 const fileUpload = require("express-fileupload");
 const crypto = require("crypto");
-const readline = require("readline");
 
 const properties = require("properties-parser");
 
@@ -88,7 +118,7 @@ if(!global_settings.secrets.session || global_settings.secrets.session == "chang
     data = hash.digest("base64").toString();
 
     global_settings.secrets.session = data;
-    console.log(`Session token not provided. Generating a new one using crypto library. Change it to your likings, or leave it.`)
+    log(`Session token not provided. Generating a new one using crypto library. Change it to your likings, or leave it.`)
     saveSettings()
 }
 
@@ -228,6 +258,7 @@ function addMenuTab(bsIcon, title, href, priority) {
 }
 
 const MODULES = [
+    require("./modules/console")(new ServerDataContext()),
     require("./modules/addons")(new ServerDataContext()), // Plugins / Addons
     require("./modules/macros")(new ServerDataContext()), // Command Macros
     require("./modules/scheduler")(new ServerDataContext()), // Scheduler
@@ -608,24 +639,7 @@ function toggleServer(socket) {
 let port = global_settings.webPort ? global_settings.webPort : 3000;
 server.listen(port, () => {
     if(global_settings.webPort)
-        console.log(`listening on *:${port}`);
+        log(`listening on *:${port}`);
 
     // Flush old temp files
 });
-
-const rd = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-})
-
-/* TO DO: Command-Line input - probably as separate module
-function commandHandler() {
-    rd.question("[MCSM] ", command => {
-        // Handle Command
-
-        commandHandler();
-    })
-}
-
-commandHandler();
-*/

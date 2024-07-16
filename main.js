@@ -50,6 +50,15 @@ class ServerDataContext {
             return true;
         }
 
+        this.getLatestLog = () => {
+            if(fs.existsSync(path.join(__dirname, "mc_server/logs/latest.log"))) {
+                let latestLog = fs.readFileSync(path.join(__dirname, "mc_server/logs/latest.log"), { encoding: 'utf8', flag: 'r' })
+                return latestLog
+            }
+
+            return "";
+        }
+
         this.readConfig = (name, def) => {
             if(!fs.existsSync(`config/${name}.json`)) {
                 return def;
@@ -496,7 +505,7 @@ class MCServer {
             PrintToConsole(ansi);
 
             server.outputCallbacks.forEach(callback => {
-                if(callback != null || typeof(callback) != "function") {
+                if(callback == null || typeof(callback) != "function") {
                     server.outputCallbacks.splice(server.outputCallbacks.indexOf(callback), 1);
                     return;
                 }

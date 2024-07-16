@@ -18,9 +18,12 @@ class ConsoleModule {
         }
 
         this.commandHandler = () => {
-            this.rl.question(this.serverMode == 0 ? colors.green("MCSM> ") : colors.yellow("MC> "), (raw) => {
+            this.rl.question(this.serverMode == 0 ? colors.green("MCSM> ") : "", (raw) => {
                 if(this.serverMode == 1 && !raw.startsWith(':')) {
-
+                    if(this.context.currentServer())
+                        this.context.currentServer().sendCommand(raw);
+                    else
+                        console.log(colors.red("Server needs to be running in order to run commands!"))
                     this.commandHandler();
                     return;
                 }
@@ -56,6 +59,8 @@ class ConsoleModule {
         }
 
         this.onLog = (msg) => {
+            if(this.serverMode > 0) return;
+
             console.log(msg);
         }
 
@@ -64,10 +69,47 @@ class ConsoleModule {
             this.context.log("Pong!");
         })
 
-        this.addCommand("server", (args) => {
+        this.outputId = 0;
+
+        this.switchMode = (mode) => {
+            switch(mode) {
+                case 0:
+                    this.serverMode = 0;
+                    this.clear();
+                    this.context.getLogs().forEach(el => {
+                        console.log(el)
+                    });
+                    break;
+                case 1:
+                    if(!this.context.currentServer()) {
+                        this.context.log(colors.red("Server needs to be running in order to see it!"))
+                        return;
+                    }
+
+                    this.serverMode = 1;
+                    this.clear();
+
+                    let myId = this.outputId + 1;
+                    this.outputId = myId;
+                    this.context.currentServer().addOutputCallback((msg) => {
+                        if(this.outputId != myId || this.serverMode < 1)
+                            return true;
+
+                        console.log(msg);
+                        return false;
+                    })
+
+                    console.log(colors.gray(this.context.getLatestLog()+"---------------------------- LATEST LOG ----------------------------"))
+                    break;
+            }
+        }
+
+        this.addCommand("mc", (args) => {
             switch(args[0]) {
                 case "toggle":
                     this.context.toggleServer()
+                    if(args[1] && args[1] == 'v')
+                        this.switchMode(1);
                     break;
                 case "restart":
                     if(this.context.currentServer())
@@ -75,7 +117,15 @@ class ConsoleModule {
                     else
                         this.context.log(colors.red("Server needs to be running in order to restart it!"));
                     break;
+                case "view":
+                    this.switchMode(1);
+                    break;
             }
+        })
+
+        this.addCommand("back", (args) => {
+            if(this.serverMode < 1) return;
+            this.switchMode(0)
         })
 
         /* Run */

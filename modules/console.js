@@ -6,7 +6,7 @@ class ConsoleModule {
         this.context = context;
         this.commands = {};
 
-        this.serverMode = 1;
+        this.serverMode = 0;
 
         this.rl = readline.createInterface({
             input: process.stdin,

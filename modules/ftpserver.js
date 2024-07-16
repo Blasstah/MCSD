@@ -14,7 +14,12 @@ class FTPServerModule {
             pasv_start: 3002,
             pasv_end: 3050,
             username: "admin",
-            password: "123321#"
+            password: "123321#",
+            ip_whitelist: [
+                "::1",
+                "localhost",
+                "127.0.0.1"
+            ]
         }
 
         this.connections = []
@@ -45,7 +50,7 @@ class FTPServerModule {
                 pasvPortRangeEnd: this.settings.pasv_end,
                 tlsOptions: null,
             }
-            
+
             this.server = new ftpd.FtpServer(this.settings.host, ftpSettings)
     
             this.server.on("error", (err) => {
@@ -66,6 +71,11 @@ class FTPServerModule {
                 */
 
                 conn.on('command:user', (user, success, failure) => {
+                    if(!this.settings.ip_whitelist.includes(conn.socket.remoteAddress)) {
+                        failure();
+                        return;
+                    }
+
                     if(user != this.settings.username) {
                         failure();
                         return;
@@ -76,6 +86,11 @@ class FTPServerModule {
                 });
     
                 conn.on("command:pass", (pass, success, failure) => {
+                    if(!this.settings.ip_whitelist.includes(conn.socket.remoteAddress)) {
+                        failure();
+                        return;
+                    }
+
                     if(pass != this.settings.password) {
                         failure();
                         return;
@@ -87,7 +102,6 @@ class FTPServerModule {
                 this.refreshConnections()
             })
 
-            this.server.debugging = 4;
             if(this.settings.enabled)
                 this.server.listen(this.settings.port);
         }
@@ -144,6 +158,44 @@ class FTPServerModule {
 
                 socket.emit("force_reload", {message: "Successfully updated FTP credentials!", type: "success"})
             })
+
+            socket.on("ftp_whitelist_add", (payload) => {
+                let ipAddr = payload.ip;
+
+                if(ipAddr == null || typeof(ipAddr) != "string" || ipAddr == "") {
+                    this.context.showNotif(socket, "Invalid IP Address!", "error");
+                    return;
+                }
+
+                let index = this.settings.ip_whitelist.indexOf(ipAddr);
+                if(index > -1) {
+                    this.context.showNotif(socket, "Provided IP is already whitelisted!", "error");
+                    return;
+                }
+
+                this.settings.ip_whitelist.push(ipAddr);
+                socket.emit("force_reload", {message: `Successfully added ${ipAddr} to the whitelist!`, type: "success"})
+                context.saveConfig("ftpserver", this.settings);
+            })
+
+            socket.on("ftp_whitelist_remove", (payload) => {
+                let ipAddr = payload.ip;
+
+                if(ipAddr == null || typeof(ipAddr) != "string" || ipAddr == "") {
+                    this.context.showNotif(socket, "Invalid IP Address!", "error");
+                    return;
+                }
+
+                let index = this.settings.ip_whitelist.indexOf(ipAddr);
+                if(index < 0) {
+                    this.context.showNotif(socket, "Provided IP is not in the whitelist!", "error");
+                    return;
+                }
+
+                this.settings.ip_whitelist.splice(index, 1);
+                socket.emit("force_reload", {message: `Successfully removed ${ipAddr} from the whitelist!`, type: "success"})
+                context.saveConfig("ftpserver", this.settings);
+            })
         }
 
         this.context.addEntryPoint("/ftpserver", (req, res, data) => {
@@ -154,7 +206,6 @@ class FTPServerModule {
             data.connections = []
             for(let el of this.connections) {
                 if(!el.socket) continue;
-                console.log(el)
                 data.connections.push(el.socket.remoteAddress);
             }
 

@@ -20,11 +20,19 @@
                         }
 
                         .ftp-connection {
+                            padding-left: 5px;
+                            padding-right: 5px;
                             border-bottom: solid 1px #555;
+                            display: flex;
+                            justify-content: space-between;
                         }
 
-                        .ftp-connection::before {
-                            content: "•"
+                        .ftp-connection.active {
+                            background-color: #232;
+                            border-bottom: solid 1px #585;
+                            display: flex;
+                            justify-content: space-between;
+                            font-weight: 600;
                         }
                     </style>
                     <div class="form-check form-switch">
@@ -73,12 +81,32 @@
                         </div>
                         <button id="ftp_credentials_button" class="btn btn-warning" style="width: 200px;">Update Credentials</button>
                     </div>
-                    <h4 class="mt-3"><i class="bi bi-wifi" style="margin-right: 10px;"></i>Current Connections: <%- connections.length %></h4>
+                    <h4 class="mt-3"><i class="bi bi-wifi" style="margin-right: 10px;"></i>IP Whitelist (<%- connections.length %> connections)</h4>
                     <hr>
-                    <div class="d-flex flex-column w-100 p-2 gap-2" style="background-color: #111; height: 240px; overflow-y: auto;">
-                        <% for(let el of connections) { %>
-                        <div class="ftp-connection">
-                            <%- el %>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="ftp_whitelist_address" placeholder="IP Address...">
+                        <button class="btn btn-success" type="button" id="ftp_whitelist_add">Add</button>
+                    </div>
+                    <div class="d-flex flex-column w-100 p-2 gap-2" style="height: 220px; background-color: #111; overflow-y: auto;">
+                        <% 
+                            let locals = [
+                                "::1",
+                                "127.0.0.1",
+                                "localhost"
+                            ]
+                        %>
+                        <% for(let el of ftp_server.ip_whitelist) { let isActive = connections.includes(el) %>
+                        <div class="ftp-connection <%- isActive ? "active" : "" %>">
+                            <div class="ip-holder">
+                                <%- el %>
+                            </div>
+                            <div>
+                                <% if(locals.includes(el)) { %>
+                                    <span class="text-muted font-monospace" style=" margin-right: 20px;">(loopback)</span>
+                                <% } %>
+                                <%- connections.filter(x => x == el).length %> connections
+                                <a href="#" class="ftp_whitelist_remove" entry="<%-el %>"><i class="bi bi-trash" style="margin-left: 5px; color:#fff"></i></a>
+                            </div>
                         </div>
                         <% } %>
                     </div>
@@ -127,6 +155,16 @@
 
         $("#ftp_credentials_button").click(() => {
             updateCredentials();
+        })
+
+        $(".ftp_whitelist_remove").click(function() {
+            let address = $(this).attr("entry");
+            socket.emit("ftp_whitelist_remove", {ip: address})
+        })
+
+        $("#ftp_whitelist_add").click(function() {
+            let address = $("#ftp_whitelist_address").val();
+            socket.emit("ftp_whitelist_add", {ip: address})
         })
     </script>
 </html>

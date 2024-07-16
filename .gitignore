@@ -4,6 +4,10 @@ upload_tmp/
 config/
 settings.json
 
+# FTP Key and Cert
+FTP_KEY.pem
+FTP_CERT.pem
+
 # Logs
 logs
 *.log

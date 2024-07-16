@@ -55,6 +55,7 @@ const fs = require("fs")
 const pidusage = require("pidusage");
 const Gamedig = require('gamedig');
 const fileUpload = require("express-fileupload");
+const crypto = require("crypto");
 
 const properties = require("properties-parser");
 
@@ -68,10 +69,30 @@ const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server);
 
+/* Global Settings */
+let global_settings = { password: "admin", Xms: 512, Xmx: 2048, webPort: 3000, secrets: { session: "changeme" } };
+if(fs.existsSync(path.join(__dirname, "settings.json"))) 
+    global_settings = JSON.parse(fs.readFileSync(path.join(__dirname, "settings.json")))
+
+function saveSettings() {
+    fs.writeFileSync("settings.json", JSON.stringify(global_settings, null, 4))
+}
+
 const session = require('express-session')
 
+if(!global_settings.secrets.session || global_settings.secrets.session == "changeme") {
+    var hash = crypto.createHash("sha256");
+    var data = crypto.randomBytes(Math.pow(2, 24)).toString()
+    data = hash.update(data);
+    data = hash.digest("base64").toString();
+
+    global_settings.secrets.session = data;
+    console.log(`Session token not provided. Generating a new one using crypto library. Change it to your likings, or leave it.`)
+    saveSettings()
+}
+
 const sessionMiddleware = session({
-    secret: "changeit",
+    secret: global_settings.secrets.session,
     resave: true,
     saveUninitialized: true,
 });
@@ -85,14 +106,6 @@ var ansiConvert = new AnsiConvert();
 
 if(!fs.existsSync(path.join(__dirname, "config")))
     fs.mkdirSync("config")
-
-let global_settings = { password: "admin", Xms: 512, Xmx: 2048, webPort: 3000 };
-if(fs.existsSync(path.join(__dirname, "settings.json"))) 
-    global_settings = JSON.parse(fs.readFileSync(path.join(__dirname, "settings.json")))
-
-function saveSettings() {
-    fs.writeFileSync("settings.json", JSON.stringify(global_settings, null, 4))
-}
 
 app.use(sessionMiddleware)
 io.engine.use(sessionMiddleware)

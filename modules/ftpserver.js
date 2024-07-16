@@ -1,4 +1,5 @@
 const ftpd = require("ftpd");
+const fs = require("fs");
 
 class FTPServerModule {
     constructor(context) {
@@ -33,7 +34,7 @@ class FTPServerModule {
 
             this.server = null;
 
-            this.server = new ftpd.FtpServer(this.settings.host, {
+            let ftpSettings = {
                 getInitialCwd: function() {
                     return "/"
                 },
@@ -42,8 +43,19 @@ class FTPServerModule {
                 },
                 pasvPortRangeStart: this.settings.pasv_start,
                 pasvPortRangeEnd: this.settings.pasv_end,
-                tlsOptions: this.settings.tls,
-            })
+                tlsOptions: null,
+            }
+
+            this.server = new ftpd.FtpServer(this.settings.host, ftpSettings)
+
+            if(fs.existsSync(this.context.relativePath("FTP_KEY.pem"))) {
+                options.tls = {}
+                options.tls.key = fs.readFileSync(this.context.relativePath("FTP_KEY.pem"))
+            }
+
+            if(fs.existsSync(this.context.relativePath("FTP_CERT.pem")) && options.tls) {
+                options.tls.cert = fs.readFileSync(this.context.relativePath("FTP_CERT.pem"))
+            }
     
             this.server.on("error", (err) => {
                 console.log(err);

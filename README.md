@@ -10,13 +10,13 @@ You can think of it as a set of **various tools to more easily manage a Minecraf
 
 > Made primarly using Express, Socket.IO, EJS, Bootstrap and JQuery.
 
-> **Bootstrap theme, Bootstrap icons, CodeMirror and Notyf** are being downloaded from **CDNs**. Check **views/partials/libs** and **views/partials/settings** for links. All of them are being downloaded from **jsDelivr**.
+> **Bootstrap theme, Bootstrap icons, CodeMirror and Notyf** are being downloaded from **CDNs**. Check **views/partials/libs** and **views/settings** for links. All of them are being downloaded from **jsDelivr**.
 
 ## Features
 Keep in mind that the software is in early stages of development and more things will be added, or changed.
 - Integrated, web server console
 - Player list and count via aquiring game query.
-- Server properties editor powered by CodeMirror
+- Web Server properties editor powered by CodeMirror
 - Memory and CPU Usage monitoring.
 - Mods and plugins management.
 - Scheduler, that allows creating tasks at specified day and time. (Messages, executing commands, restarting the server, and doing a backup)

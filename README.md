@@ -9,7 +9,8 @@
 You can think of it as a set of **various tools to more easily manage a Minecraft Server**. This tool is mainly targeted for people, **who want to quickly setup a server and play with some friends**, and not big server providers. 
 
 > Made primarly using Express, Socket.IO, EJS, Bootstrap and JQuery.
-> **Bootstrap theme, Bootstrap icons, CodeMirror and Notyf** are being downloaded from **CDNs**. Check views/partials/libs and views/partials settings for links. All of them are being downloaded from **jsDelivr**.
+
+> **Bootstrap theme, Bootstrap icons, CodeMirror and Notyf** are being downloaded from **CDNs**. Check **views/partials/libs** and **views/partials/settings** for links. All of them are being downloaded from **jsDelivr**.
 
 ## Features
 Keep in mind that the software is in early stages of development and more things will be added, or changed.

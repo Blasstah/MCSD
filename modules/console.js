@@ -13,6 +13,8 @@ class ConsoleModule {
             output: process.stdout
         })
 
+        this.log = this.context.log;
+
         this.clear = () => {
             process.stdout.write('\x1Bc')
         }
@@ -34,15 +36,18 @@ class ConsoleModule {
 
                 let cmd = cmdData.splice(0, 1);
 
-                if(typeof(this.commands[cmd]) == "function") {
-                    this.commands[cmd](cmdData);
+                if(typeof(this.commands[cmd]) == "object" && typeof(this.commands[cmd].func) == "function") {
+                    this.commands[cmd].func(cmdData);
                 }
 
                 this.commandHandler();
             })
         }
 
-        this.addCommand = (alias, func) => {
+        this.addCommand = (alias, func, description, help) => {
+            if(!description) description = colors.gray("[Empty]");
+            if(!help) help = colors.gray("[No help available]")
+
             if(alias == "" || alias == null) return false;
             if(typeof(func) != "function") return false;
 
@@ -50,7 +55,11 @@ class ConsoleModule {
                 return false;
             }
 
-            this.commands[alias] = func;
+            this.commands[alias] = {
+                func,
+                description,
+                help,
+            };
             return true;
         }
 
@@ -64,13 +73,7 @@ class ConsoleModule {
             console.log(msg);
         }
 
-        /* Commands */
-        this.addCommand("ping", (args) => {
-            this.context.log("Pong!");
-        })
-
         this.outputId = 0;
-
         this.switchMode = (mode) => {
             switch(mode) {
                 case 0:
@@ -100,33 +103,67 @@ class ConsoleModule {
                     })
 
                     console.log(colors.gray(this.context.getLatestLog()+"---------------------------- LATEST LOG ----------------------------"))
+                    console.log(`${colors.yellow("You're now in MC Server View. Type")} ${colors.green(":back")} ${colors.yellow("to go back to MCSM CMD.")} `)
                     break;
             }
         }
 
-        this.addCommand("mc", (args) => {
-            switch(args[0]) {
-                case "toggle":
-                    this.context.toggleServer()
-                    if(args[1] && args[1] == 'v')
-                        this.switchMode(1);
-                    break;
-                case "restart":
-                    if(this.context.currentServer())
-                        this.context.currentServer().restart();
-                    else
-                        this.context.log(colors.red("Server needs to be running in order to restart it!"));
-                    break;
-                case "view":
-                    this.switchMode(1);
-                    break;
-            }
-        })
+        /* Default Commands */
+        this.registerDefaults = () => {
+            this.addCommand("help", (args) => {
+                if(args.length > 0) {
+                    let cmd = args[0];
 
-        this.addCommand("back", (args) => {
-            if(this.serverMode < 1) return;
-            this.switchMode(0)
-        })
+                    if(this.commands[cmd] == null) {
+                        this.log(colors.red(`Command "${cmd}" not found!`))
+                        return;
+                    }
+
+                    this.log(` - ${colors.yellow(cmd)}: ${this.commands[cmd].description}`);
+                    this.log(`${this.commands[cmd].help}`);
+                    return;
+                }
+
+                this.log(colors.yellow("Command List:"))
+                Object.keys(this.commands).forEach(key => {
+                    let obj = this.commands[key];
+
+                    this.log(` - ${colors.yellow(key)}: ${obj.description}`);
+                });
+            }, "Displays help about certain command, or command list, if no argument is passed.")
+
+            this.addCommand("ping", (args) => {
+                this.context.log("Pong!");
+            }, "Pongs back to you :)")
+
+            this.addCommand("mc", (args) => {
+                switch(args[0]) {
+                    case "toggle":
+                        this.context.toggleServer()
+                        if(args[1] && args[1] == 'v')
+                            this.switchMode(1);
+                        break;
+                    case "restart":
+                        if(this.context.currentServer())
+                            this.context.currentServer().restart();
+                        else
+                            this.context.log(colors.red("Server needs to be running in order to restart it!"));
+                        break;
+                    case "view":
+                        this.switchMode(1);
+                        break;
+                    default:
+                        this.context.log(colors.red("You need to provide valid action argument. See help page for mc command."));
+                        break;
+                }
+            }, "Used to control various aspects of Minecraft Server.", "Various arguments give different results like:\n - toggle: toggles server on/off.\n - restart: restarts server\n - view: shows minecraft server console")
+    
+            this.addCommand("back", (_) => {
+                if(this.serverMode < 1) return;
+                this.switchMode(0)
+            }, "Reverts console from MC Server to MCSM console.")
+        }
+        this.registerDefaults();
 
         /* Run */
         this.clear();

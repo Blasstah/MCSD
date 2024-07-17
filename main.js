@@ -87,8 +87,8 @@ class ServerDataContext {
         this.dir = __dirname;
         this.uploadRouter = uploadRouter;
         
-        this.addCommand = (alias, func) => {
-            return CONSOLE_MODULE.addCommand(alias, func);
+        this.addCommand = (alias, func, description, help) => {
+            return CONSOLE_MODULE.addCommand(alias, func, description, help);
         }
     }
 }
@@ -640,6 +640,10 @@ statusTimeout();
 function toggleServer(socket) {
     if(currentServer) {
         currentServer.close(function() {
+            if(typeof(socket) == "function") {
+                socket();
+                return;
+            }
             if(socket) ShowNotif(socket, "Server stopped!", "success");
         });
         return;
@@ -654,7 +658,7 @@ function toggleServer(socket) {
 let port = global_settings.webPort ? global_settings.webPort : 3000;
 server.listen(port, () => {
     if(global_settings.webPort)
-        log(`listening on *:${port}`);
+        log(`MCSM started on *:${port}`);
 
     // Flush old temp files
 });

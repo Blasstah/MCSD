@@ -187,14 +187,20 @@ app.set('view engine', 'ejs');
 
 function generateDashboardData() {
     var properties = new MCServerProperties();
-    return {
+
+    let obj = {
         running: currentServer != null,
         module_tabs: MODULE_TABS ? MODULE_TABS : [],
         data: {
-            motd: ansiConvert.toHtml(properties.data.motd),
-            query_enabled: properties.data["enable-query"] == "true",
+            motd: properties.data ? ansiConvert.toHtml(properties.data.motd) : "",
+            query_enabled: properties.data ? properties.data["enable-query"] == "true" : false,
         }
     };
+    return obj
+}
+
+function isServerReady() {
+    return fs.existsSync(path.join(__dirname, "mc_server/server.jar")) && fs.existsSync(path.join(__dirname, "mc_server/server.properties"));
 }
 
 app.post('/login', function(req, res) {
@@ -207,7 +213,7 @@ app.post('/login', function(req, res) {
 
 app.get('/', function(req, res) {
     if(req.session.logged) {
-        if(fs.existsSync(path.join(__dirname, "mc_server/server.jar")))
+        if(isServerReady())
             res.render("index", generateDashboardData());
         else res.render("setup")
 
@@ -219,7 +225,7 @@ app.get('/', function(req, res) {
 
 app.get('/settings', function(req, res) {
     if(req.session.logged) {
-        if(fs.existsSync(path.join(__dirname, "mc_server/server.jar"))) {
+        if(isServerReady()) {
             var data = generateDashboardData();
             var props = new MCServerProperties();
             data.raw = props.raw;
@@ -239,7 +245,7 @@ app.get('/settings', function(req, res) {
 function addEntryPoint(entry, callback) {
     app.get(entry, function(req, res) {
         if(req.session.logged) {
-            if(fs.existsSync(path.join(__dirname, "mc_server/server.jar"))) {
+            if(isServerReady()) {
                 var data = generateDashboardData();
                 callback(req, res, data)
             }

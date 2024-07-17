@@ -1,4 +1,4 @@
-<img src="https://i.ibb.co/vjfGSwM/banner.png" />
+<img src="https://i.ibb.co/6Yv6b05/banner.png" />
 <p align="center">
     <a href="https://choosealicense.com/licenses/mit"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License" /></a>
     <a href="https://github.com/Blasstah/MCSD"><img src="https://img.shields.io/github/stars/Blasstah/MCSD" alt="MIT License" /></a>
@@ -6,7 +6,7 @@
 </p>
 
 ## What's that?
-You can think of it as a set of **various tools to more easily manage a Minecraft Server**. This tool is mainly targeted for people, **who want to quickly setup a server and play with some friends**, and not big server providers.
+You can think of it as a set of **various tools to more easily manage a Minecraft Server**. This tool is mainly targeted for people, **who want to quickly setup a server and play with some friends**, and not big server providers. Made primarly using Express, Socket.IO, EJS, Bootstrap and JQuery.
 
 ## Features
 Keep in mind that the software is in early stages of development and more things will be added, or changed.

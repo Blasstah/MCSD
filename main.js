@@ -113,6 +113,10 @@ const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server);
 
+// Create mc_server directory
+if(!fs.existsSync("mc_server"))
+    fs.mkdirSync("mc_server")
+
 /* Global Settings */
 let global_settings = { password: "admin", Xms: 512, Xmx: 2048, webPort: 3000, secrets: { session: "changeme" } };
 if(fs.existsSync(path.join(__dirname, "settings.json"))) 

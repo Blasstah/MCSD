@@ -1,6 +1,6 @@
 <img src="https://i.ibb.co/6Yv6b05/banner.png" />
 <p align="center">
-    <a href="https://choosealicense.com/licenses/mit"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License" /></a>
+    <a href="https://github.com/Blasstah/MCSD/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="MIT License" /></a>
     <a href="https://github.com/Blasstah/MCSD"><img src="https://img.shields.io/github/stars/Blasstah/MCSD" alt="MIT License" /></a>
     <a href="https://github.com/Blasstah/MCSD"><img src="https://img.shields.io/github/repo-size/Blasstah/MCSD" alt="MIT License" /></a>
 </p>
@@ -41,5 +41,3 @@ Keep in mind that the software is in early stages of development and more things
 ## Planned
 - Optional Discord Integration (Sending commands via Discord Bot, forwarding messages, and etc.)
 - Visual changes, Bug fixes, and etc.
-
-## Some screenshots

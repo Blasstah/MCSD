@@ -20,7 +20,7 @@ class ConsoleModule {
         }
 
         this.commandHandler = () => {
-            this.rl.question(this.serverMode == 0 ? colors.green("MCSM> ") : "", (raw) => {
+            this.rl.question(this.serverMode == 0 ? colors.green("MCSD> ") : "", (raw) => {
                 if(this.serverMode == 1 && !raw.startsWith(':')) {
                     if(this.context.currentServer())
                         this.context.currentServer().sendCommand(raw);
@@ -103,7 +103,7 @@ class ConsoleModule {
                     })
 
                     console.log(colors.gray(this.context.getLatestLog()+"---------------------------- LATEST LOG ----------------------------"))
-                    console.log(`${colors.yellow("You're now in MC Server View. Type")} ${colors.green(":back")} ${colors.yellow("to go back to MCSM CMD.")} `)
+                    console.log(`${colors.yellow("You're now in MC Server View. Type")} ${colors.green(":back")} ${colors.yellow("to go back to MCSD CMD.")} `)
                     break;
             }
         }
@@ -161,7 +161,7 @@ class ConsoleModule {
             this.addCommand("back", (_) => {
                 if(this.serverMode < 1) return;
                 this.switchMode(0)
-            }, "Reverts console from MC Server to MCSM console.")
+            }, "Reverts console from MC Server to MCSD console.")
         }
         this.registerDefaults();
 

@@ -124,6 +124,8 @@ function saveSettings() {
 
 const session = require('express-session')
 
+// Generating a session secret, if one is not present
+// It just generates random bytes from crypto and retrieves it's hash in base64.
 if(!global_settings.secrets.session || global_settings.secrets.session == "changeme") {
     var hash = crypto.createHash("sha256");
     var data = crypto.randomBytes(Math.pow(2, 24)).toString()
@@ -320,7 +322,7 @@ function initialSetupRegister(socket) {
                 properties.editor.set("view-distance", args.data.viewDistance)
                 properties.editor.set("simulation-distance", args.data.simDistance)
                 properties.editor.set("difficulty", args.data.difficulty)
-                properties.editor.set("motd", "An MCSM-made server!")
+                properties.editor.set("motd", "An MCSD-made server!")
                 properties.editor.save();
 
                 global_settings.Xms = args.data.Xms
@@ -559,7 +561,7 @@ class MCServer {
         }
 
         this.serverMessage = (msg) => {
-            let cmd = `tellraw @a ["",{"text":"[MCSM] ","bold":true,"color":"yellow"},{"text":"${msg}","color":"yellow"}]`
+            let cmd = `tellraw @a ["",{"text":"[MCSD] ","bold":true,"color":"yellow"},{"text":"${msg}","color":"yellow"}]`
             this.sendCommand(cmd);
         }
 
@@ -658,7 +660,7 @@ function toggleServer(socket) {
 let port = global_settings.webPort ? global_settings.webPort : 3000;
 server.listen(port, () => {
     if(global_settings.webPort)
-        log(`MCSM started on *:${port}`);
+        log(`MCSD started on *:${port}`);
 
     // Flush old temp files
 });

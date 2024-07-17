@@ -14,7 +14,7 @@ You can think of it as a set of **various tools to more easily manage a Minecraf
 
 ## Features
 Keep in mind that the software is in early stages of development and more things will be added, or changed.
-- Integrated console
+- Integrated, web server console
 - Player list and count via aquiring game query.
 - Server properties editor powered by CodeMirror
 - Memory and CPU Usage monitoring.

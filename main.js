@@ -539,6 +539,9 @@ class MCServer {
         this.process.on("exit", () => {
             currentServer = null;
             if(this.closeCallback) this.closeCallback();
+            
+            if(CONSOLE_MODULE.serverMode == 1)
+                CONSOLE_MODULE.switchMode(0);
         })
 
         this.close = (stopCallback) => {

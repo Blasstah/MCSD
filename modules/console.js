@@ -110,6 +110,22 @@ class ConsoleModule {
 
         /* Default Commands */
         this.registerDefaults = () => {
+            this.addCommand("stop", (args) => {
+                if(this.context.currentServer()) {
+                    this.log(colors.yellow("Turning of the app... (Waiting for server to close)"));
+                    this.context.currentServer().close(() => {
+                        this.log(colors.yellow("MC Server turned off. Exiting..."));
+                        process.exit();
+                    })
+                    return;
+                }
+
+                this.log(colors.yellow("Exiting..."));
+                process.exit(0);
+            }, "Exits MCSD and safely turns off the server if it's running.");
+            this.addCommand("clear", (args) => {
+                this.clear();
+            }, "Clears up the MCSD screen")
             this.addCommand("help", (args) => {
                 if(args.length > 0) {
                     let cmd = args[0];
@@ -151,6 +167,18 @@ class ConsoleModule {
                         break;
                     case "view":
                         this.switchMode(1);
+                        break;
+                    case "usage":
+                        if(!this.context.currentServer()) {
+                            this.log(colors.red("Server needs to be running in order to check it's usage!"));
+                            return;
+                        }
+                        this.log(colors.yellow("Checking server usage..."))
+                        this.context.currentServer().getPerformance((perf) => {
+                            this.log(colors.green("MC Server usage: "))
+                            this.log(colors.red(` - RAM: ${perf.memoryPercentage}%`))
+                            this.log(colors.blue(` - CPU: ${perf.cpu}%`))
+                        })
                         break;
                     default:
                         this.context.log(colors.red("You need to provide valid action argument. See help page for mc command."));

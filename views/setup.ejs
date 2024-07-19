@@ -42,14 +42,15 @@
                     </div>
                 </div>
                 <div class="step hidden" id="step3">
-                    <h3>Step 3: Initial Server Launch</h3>
-                    <hr class="m-0 mb-2">
-                    <h5>We need to launch the server, so the configuration files will generate properly. How long it takes? It depends on the server you choose.</h5>
+                    <div style="height: 10%;">
+                        <h3>Step 3: Initial Server Launch</h3>
+                        <hr class="m-0 mb-2">
+                    </div>
 
-                    <div class="card p-2 w-100 h-100" style="background-color: #111;">
+                    <div class="card p-2 w-100" style="height: 90%; background-color: #111;">
                         <h5>Console</h5>
                         <hr class="m-0 mb-2">
-                        <div class="h-100 d-flex flex-column overflow-auto" id="console_output">
+                        <div class="h-100 d-flex flex-column overflow-auto" style="max-height: 100%;" id="console_output">
     
                         </div>
                     </div>
@@ -86,8 +87,8 @@
                 </div>
             </div>
             <div class="progress w-50">
-                <div id="step_progress" class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" style="width: 25%;"
-                    aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">Setup Progress
+                <div id="step_progress" class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;"s aria-valuemin="0" aria-valuemax="100">
+                    Setup Progress
                 </div>
             </div>
         </main>
@@ -151,10 +152,10 @@
                 $(`#step${id}`).removeClass("hidden");
 
                 currentStep = id;
+                $("#step_progress").css("width", ((currentStep-1) * 25) + "%")
             }
 
             $(".stepBtn").on("click", (ev) => {
-
                 let obj = {step: currentStep}
 
                 if(currentStep == 4) {
@@ -166,16 +167,12 @@
                     obj.data.simDistance = $("#simDistanceRange").val();
                 }
 
-                console.log(obj);
-
                 socket.emit("step_proceed", obj);
 
                 sendAlready = true;
             })
 
             socket.on("step_status", (args) =>  {
-                console.log(args);
-
                 if(args.next) nextStep(args.next);
 
                 if(args.error) {
@@ -186,8 +183,6 @@
 
                 sendAlready = false;
             })
-
-            $("#step_progress").css("width", (currentStep * 25) + "%")
         </script>
     </body>
 </html>

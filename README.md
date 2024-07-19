@@ -47,4 +47,4 @@ Keep in mind that the software is in the early stages of development and more th
 - Since I'm still learning, more things could change if I discover a better / more efficient way do to something/
 
 ## Bugs and other Issues
-If you find some bugs, vulnerabilities, or things you think could've been changed, I'll be glad if you create an issue.
+If you find any bugs, vulnerabilities, or things you think could've been changed, I'll be glad if you create an issue.

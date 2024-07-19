@@ -114,6 +114,43 @@ class SchedulerModule {
 
         this.saveBackup = (socket, name) => {
             try {
+                // Delete backups, if max reached
+                if(fs.existsSync(this.context.relativePath("mc_server/backups"))) {
+                    let max = this.settings.backups_stored - 1;
+
+                    let files = fs.readdirSync(this.context.relativePath("mc_server/backups"));
+                    let backups = files.filter(x => x.endsWith(".zip"))
+
+                    let over = backups.length - max;
+                    if(over > 0) {
+                        for(let j = 0; j < over; j++) {
+                            let lastFile = null;
+                            let lastTime = 0;
+                            for(let i = 0; i < backups.length; i++) {
+                                let time = fs.statSync(path.join(this.context.relativePath("mc_server/backups"), backups[i])).ctimeMs;
+    
+                                if(lastFile == null) {
+                                    lastFile = backups[i];
+                                    lastTime = time;
+                                    continue;
+                                }
+    
+                                if(lastTime < time) continue;
+    
+                                lastFile = backups[i];
+                                lastTime = time;
+                            }
+
+                            if(lastFile != null) {
+                                fs.rmSync(path.join(this.context.relativePath("mc_server/backups"), lastFile))
+                            }
+
+                            files = fs.readdirSync(this.context.relativePath("mc_server/backups"));
+                            backups = files.filter(x => x.endsWith(".zip"))
+                        }
+                    }
+                }
+
                 this.context.log("Starting server backup...");
 
                 if(!fs.existsSync(this.context.relativePath("mc_server/backups"))) {
@@ -151,7 +188,7 @@ class SchedulerModule {
 
                     scheduler.doingBackup = false;
     
-                    this.context.log(message);
+                    context.log(message);
                 });
     
                 archive.on('error', function(err){
@@ -191,9 +228,9 @@ class SchedulerModule {
                     fs.rmSync(this.context.relativePath("mc_server/backups/tmp"), {recursive: true, force: true})
                 });
             }catch(e) {
-                this.context.serverMessage("Could not save backup...")
+                if(this.context.currentServer()) this.context.currentServer().serverMessage("Could not save backup...")
                 this.context.log(e);
-                scheduler.doingBackup = false;
+                this.doingBackup = false;
             }
         }
 

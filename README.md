@@ -6,11 +6,13 @@
 </p>
 
 ## What's that?
-You can think of it as a set of **various tools to more easily manage a Minecraft Server**. This tool is mainly targeted at people, **who want to quickly set up a server and play with some friends**, and not big server providers. **It was mainly done as a learning project, so I could learn the basics of Node.JS Web App Development**
+You can think of it as a set of **various tools to more easily manage a Minecraft Server**. This tool is mainly targeted at people, **who want to quickly set up a server and play with some friends**, and not big server providers. 
+
+**It was mainly done as a learning project, so I could learn the basics of Node.JS Web App Development**
 
 > Made primarily using Express, Socket.IO, EJS, Bootstrap and JQuery.
 
-> **<a href="https://bootswatch.com/darkly/">Bootstrap theme (Darkly from Bootswatch)</a>, <a href="https://icons.getbootstrap.com">Bootstrap icons</a> <a href="https://github.com/codemirror/codemirror5">CodeMirror</a> and <a href="https://github.com/caroso1222/notyf">Notyf</a>** are being downloaded from **CDNs**. Check **views/partials/libs** and **views/settings** for links. All of them are being downloaded from **jsDelivr**.
+> **<a href="https://bootswatch.com/darkly/">Bootstrap theme (Darkly from Bootswatch)</a>, <a href="https://icons.getbootstrap.com">Bootstrap icons</a>, <a href="https://github.com/codemirror/codemirror5">CodeMirror</a> and <a href="https://github.com/caroso1222/notyf">Notyf</a>** are being downloaded from **CDNs**. Check **views/partials/libs** and **views/settings** for links. All of them are being downloaded from **jsDelivr**.
 
 ## Features
 Keep in mind that the software is in the early stages of development and more things will be added or changed.

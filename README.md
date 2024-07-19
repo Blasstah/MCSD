@@ -12,7 +12,7 @@ You can think of it as a set of **various tools to more easily manage a Minecraf
 
 > Made primarily using Express, Socket.IO, EJS, Bootstrap and JQuery.
 
-> **<a href="https://bootswatch.com/darkly/">Bootstrap theme (Darkly from Bootswatch)</a>, <a href="https://icons.getbootstrap.com">Bootstrap icons</a>, <a href="https://github.com/codemirror/codemirror5">CodeMirror</a> and <a href="https://github.com/caroso1222/notyf">Notyf</a>** are being downloaded from **CDNs**. Check **views/partials/libs** and **views/settings** for links. All of them are being downloaded from **jsDelivr**.
+> **<a href="https://bootswatch.com/darkly/">Bootstrap theme (Darkly from Bootswatch)</a>, <a href="https://icons.getbootstrap.com">Bootstrap icons</a>, <a href="https://github.com/codemirror/codemirror5">CodeMirror</a> and <a href="https://github.com/caroso1222/notyf">Notyf</a>** are being downloaded from **CDNs**. Check **views/partials/libs** and **views/settings** for links. All of them are being downloaded from **jsDelivr** and **Cloudflare cdnjs (for CodeMirror)**.
 
 ## Features
 Keep in mind that the software is in the early stages of development and more things will be added or changed.

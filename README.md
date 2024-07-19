@@ -9,6 +9,7 @@
 You can think of it as a set of **various tools to more easily manage a Minecraft Server**. This tool is mainly targeted at people, **who want to quickly set up a server and play with some friends**, and not big server providers. 
 
 **It was mainly done as a learning project, so I could learn the basics of Node.JS Web App Development**
+**I'm still a beginner in web app development, so use this at your own risk. The app is MIT Licensed.**
 
 > Made primarily using Express, Socket.IO, EJS, Bootstrap and JQuery.
 
@@ -46,4 +47,4 @@ Keep in mind that the software is in the early stages of development and more th
 - Since I'm still learning, more things could change if I discover a better / more efficient way do to something/
 
 ## Bugs and other Issues
-If you happen to find some bugs, or things you think could've been changed, create an issue.
+If you find some bugs, vulnerabilities, or things you think could've been changed, I'll be glad if you create an issue.

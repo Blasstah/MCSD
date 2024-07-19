@@ -42,6 +42,7 @@ Keep in mind that the software is in the early stages of development and more th
 ## Planned
 - Optional Discord Integration (Sending commands via Discord Bot, forwarding messages, etc.)
 - Visual changes, Bug fixes, etc.
+- Change Scheduler, so it would use bit flags for days, instead of arrays.
 - Since I'm still learning, more things could change if I discover a better / more efficient way do to something/
 
 ## Bugs and other Issues

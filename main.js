@@ -214,7 +214,6 @@ app.post('/login', function(req, res) {
     let data = req.body.pass;
     data = hash.update(data);
     data = hash.digest("base64").toString();
-    console.log(data);
 
     if(data == global_settings.password) {
         req.session.logged = true;

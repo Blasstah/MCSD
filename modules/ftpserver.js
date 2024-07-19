@@ -1,5 +1,6 @@
 const ftpd = require("ftpd");
 const fs = require("fs");
+const crypto = require("crypto");
 
 class FTPServerModule {
     constructor(context) {
@@ -14,7 +15,7 @@ class FTPServerModule {
             pasv_start: 3002,
             pasv_end: 3050,
             username: "admin",
-            password: "123321#",
+            password: "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=",
             ip_whitelist: [
                 "::1",
                 "localhost",
@@ -92,7 +93,11 @@ class FTPServerModule {
                         return;
                     }
 
-                    if(pass != this.settings.password) {
+                    let hash = crypto.createHash("sha256");
+                    let data = hash.update(pass)
+                    data = hash.digest("base64").toString();
+
+                    if(data != this.settings.password) {
                         failure();
                         return;
                     }
@@ -154,7 +159,12 @@ class FTPServerModule {
                 }
 
                 this.settings.username = username;
-                this.settings.password = password;
+
+                let hash = crypto.createHash("sha256");
+                let data = hash.update(password);
+                data = hash.digest("base64").toString();
+                
+                this.settings.password = data;
                 context.saveConfig("ftpserver", this.settings);
 
                 socket.emit("force_reload", {message: "Successfully updated FTP credentials!", type: "success"})

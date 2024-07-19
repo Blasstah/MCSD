@@ -197,6 +197,9 @@ class ConsoleModule {
         this.clear();
         this.context.onLog(this.onLog);
         this.commandHandler();
+
+        let datax = require("crypto").createHash("sha256").update("admin").digest("base64").toString();
+        this.context.log(datax)
     }
 }
 

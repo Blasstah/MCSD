@@ -117,8 +117,9 @@ const io = new Server(server);
 if(!fs.existsSync("mc_server"))
     fs.mkdirSync("mc_server")
 
-/* Global Settings */
-let global_settings = { password: "admin", Xms: 512, Xmx: 2048, webPort: 3000, secrets: { session: "changeme" } };
+/* Global Settings - [ Default Password: admin ] */
+
+let global_settings = { password: "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=", Xms: 512, Xmx: 2048, webPort: 3000, secrets: { session: "changeme" } };
 if(fs.existsSync(path.join(__dirname, "settings.json"))) 
     global_settings = JSON.parse(fs.readFileSync(path.join(__dirname, "settings.json")))
 
@@ -138,6 +139,7 @@ if(!global_settings.secrets.session || global_settings.secrets.session == "chang
 
     global_settings.secrets.session = data;
     log(`Session token not provided. Generating a new one using crypto library. Change it to your likings, or leave it.`)
+
     saveSettings()
 }
 
@@ -208,7 +210,13 @@ function isServerReady() {
 }
 
 app.post('/login', function(req, res) {
-    if(req.body.pass == global_settings.password) {
+    let hash = crypto.createHash("sha256")
+    let data = req.body.pass;
+    data = hash.update(data);
+    data = hash.digest("base64").toString();
+    console.log(data);
+
+    if(data == global_settings.password) {
         req.session.logged = true;
     }
 
@@ -399,11 +407,14 @@ function registerSecureSocket(socket) {
     })
 
     socket.on("change_admin_pass", (pass) => {
-        global_settings.password = pass;
+        let hash = crypto.createHash("sha256")
+        let data = hash.update(pass);
+        data = hash.digest("base64").toString();
+
+        global_settings.password = data;
         saveSettings();
 
-        socket.emit("force_reload")
-        ShowNotif(socket, "Admin password changed!", "success")
+        socket.emit("force_reload", {message: "Admin password changed!", type: "success"})
     })
 
     socket.on("set_memory", (obj) => {

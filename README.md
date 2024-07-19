@@ -34,7 +34,7 @@ Keep in mind that the software is in the early stages of development and more th
 0. Install the newest version of Node.JS with NPM
 1. Clone this repo to some empty directory, and install all required packages via **"npm i"**.
 2. Run the app with **"npm start"** in Terminal / CMD / PowerShell.
-3. By default, the website is hosted on "localhost:3000". Open your browser and go to http://localhost:3000.
+3. By default, the website is hosted on "*:3000". Open your browser and go to http://localhost:3000.
 4. Login to the panel. The default password is "admin". Remember to change it in the settings later!
 5. Proceed with the instructions on the page. You however need to download the server jar file by yourself and put it in the "mc_server" folder. This app does not download it for you. So get paper, fabric, or anything you want to use.
 6. Mess around the menus, set some options, and you're good to go.
@@ -44,5 +44,5 @@ Keep in mind that the software is in the early stages of development and more th
 - Visual changes, Bug fixes, etc.
 - Since I'm still learning, more things could change if I discover a better / more efficient way do to something/
 
-## Bugs
+## Bugs and other Issues
 If you happen to find some bugs, or things you think could've been changed, create an issue.

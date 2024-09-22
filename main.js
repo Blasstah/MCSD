@@ -2,6 +2,9 @@
 let logs = [];
 let logHandlers = [];
 
+const LAUNCH_ARGS = [...process.argv]
+LAUNCH_ARGS.splice(0, 2)
+
 function onLog(func) {
     if(typeof(func) != "function") return false;
     logHandlers.push(func);
@@ -86,6 +89,7 @@ class ServerDataContext {
         this.addMenuTab = addMenuTab;
         this.dir = __dirname;
         this.uploadRouter = uploadRouter;
+        this.launchArgs = LAUNCH_ARGS;
         
         this.addCommand = (alias, func, description, help) => {
             return CONSOLE_MODULE.addCommand(alias, func, description, help);

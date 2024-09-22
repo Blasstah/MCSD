@@ -24,6 +24,7 @@
     "yaml": "^2.4.5"
   },
   "scripts": {
-    "start": "node main.js"
+    "start": "node main.js",
+    "startftp": "node main.js ftp"
   }
 }

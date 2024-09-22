@@ -18,7 +18,7 @@ You can think of it as a set of **various tools to more easily manage a Minecraf
 ## Prerequisites
 - Node.JS
 - NPM
-- All packages (just install it with "npm i")
+- All packages (just install it with **"npm i"**)
 
 ## Features
 Keep in mind that the software is in the early stages of development and more things will be added or changed.

@@ -1,6 +1,7 @@
 const ftpd = require("ftpd");
 const fs = require("fs");
 const crypto = require("crypto");
+const colors = require("colors");
 
 class FTPServerModule {
     constructor(context) {
@@ -27,6 +28,30 @@ class FTPServerModule {
 
         this.settings = context.readConfig("ftpserver", def);
         context.saveConfig("ftpserver", this.settings);
+
+        const PASS_ELEMENTS = "QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm1234567890!@#$%^&*";
+        if(context.launchArgs.length > 0 && context.launchArgs[0] == "ftp") {
+            this.context.log(colors.yellow("--- FTP LAUNCH DETECTED ---"))
+            this.settings.enabled = true;
+            this.context.log("FTP Server ran on port: "+colors.green(this.settings.port));
+            this.context.log("FTP username: "+colors.green(this.settings.username))
+            if(this.settings.password == "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=") {
+                let pass = "";
+                for(let i = 0; i < 8; i++) {
+                    let rand = crypto.randomInt(PASS_ELEMENTS.length);
+                    pass += PASS_ELEMENTS[rand];
+
+                    let hash = crypto.createHash("sha256");
+                    let data = hash.update(pass).digest("base64").toString();
+
+                    this.settings.password = data;
+                }
+
+                this.context.log("--- Since password is set to default (admin), new FTP password will be generated.");
+                this.context.log("Generated FTP password: "+colors.green(pass))
+            }
+            this.context.log(colors.yellow("---------------------------"))
+        }
 
         this.refreshConnections = () => {
             for(let el of [ ...this.connections ])
